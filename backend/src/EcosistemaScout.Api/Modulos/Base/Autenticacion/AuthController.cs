@@ -1,12 +1,15 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using EcosistemaScout.Api.Comun;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EcosistemaScout.Api.Modulos.Base.Autenticacion;
 
-public record SolicitudLogin([Required, EmailAddress] string Email, [Required] string Password);
+public record SolicitudLogin(
+    [Required(ErrorMessage = "Ingresa tu correo.")][EmailAddress(ErrorMessage = "El correo no es válido.")] string Email,
+    [Required(ErrorMessage = "Ingresa tu contraseña.")] string Password);
 
 public record UsuarioActual(long Id, string Nombre, string Email, IReadOnlyList<string> Roles);
 
@@ -24,8 +27,8 @@ public class AuthController(
     /// <summary>Valida las credenciales y devuelve un token JWT.</summary>
     [HttpPost("login")]
     [AllowAnonymous]
-    [ProducesResponseType<RespuestaLogin>(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ResponseData<RespuestaLogin>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ResponseData<object>>(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login(SolicitudLogin solicitud)
     {
         var usuario = await usuarios.FindByEmailAsync(solicitud.Email);
@@ -37,8 +40,8 @@ public class AuthController(
         var resultado = await acceso.CheckPasswordSignInAsync(usuario, solicitud.Password, lockoutOnFailure: true);
         if (resultado.IsLockedOut)
         {
-            return Problem(statusCode: StatusCodes.Status401Unauthorized,
-                title: "Cuenta bloqueada temporalmente por demasiados intentos fallidos.");
+            return Unauthorized(ResponseData.Error(
+                "Cuenta bloqueada temporalmente por demasiados intentos fallidos. Intenta en 15 minutos."));
         }
         if (!resultado.Succeeded)
         {
@@ -51,28 +54,28 @@ public class AuthController(
         var roles = (await usuarios.GetRolesAsync(usuario)).ToList();
         var (token, expira) = tokens.Generar(usuario, roles);
 
-        return Ok(new RespuestaLogin(token, expira,
-            new UsuarioActual(usuario.Id, usuario.Nombre, usuario.Email!, roles)));
+        var datos = new RespuestaLogin(token, expira, new UsuarioActual(usuario.Id, usuario.Nombre, usuario.Email!, roles));
+        return Ok(ResponseData.Ok(datos, $"Bienvenido, {usuario.Nombre}."));
     }
 
     /// <summary>Datos del usuario que hace la petición (requiere token).</summary>
     [HttpGet("me")]
     [Authorize]
-    [ProducesResponseType<UsuarioActual>(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ResponseData<UsuarioActual>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ResponseData<object>>(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Me()
     {
         var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var usuario = id is null ? null : await usuarios.FindByIdAsync(id);
         if (usuario is null || !usuario.Activo)
         {
-            return Unauthorized();
+            return Unauthorized(ResponseData.Error("Tu sesión ya no es válida. Vuelve a iniciar sesión."));
         }
 
         var roles = (await usuarios.GetRolesAsync(usuario)).ToList();
-        return Ok(new UsuarioActual(usuario.Id, usuario.Nombre, usuario.Email!, roles));
+        return Ok(ResponseData.Ok(new UsuarioActual(usuario.Id, usuario.Nombre, usuario.Email!, roles)));
     }
 
-    private ObjectResult CredencialesInvalidas() =>
-        Problem(statusCode: StatusCodes.Status401Unauthorized, title: "Correo o contraseña incorrectos.");
+    private UnauthorizedObjectResult CredencialesInvalidas() =>
+        Unauthorized(ResponseData.Error("Correo o contraseña incorrectos."));
 }

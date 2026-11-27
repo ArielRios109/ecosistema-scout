@@ -1,3 +1,4 @@
+using EcosistemaScout.Api.Comun;
 using EcosistemaScout.Api.Modulos.Base.Autorizacion;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,5 +12,5 @@ namespace EcosistemaScout.Api.Modulos.Portal;
 public class PortalController : ControllerBase
 {
     [HttpGet]
-    public EstadoModulo Get() => EstadoModulo.EnConstruccion("portal");
+    public ResponseData<EstadoModulo> Get() => ResponseData.Ok(EstadoModulo.EnConstruccion("portal"));
 }

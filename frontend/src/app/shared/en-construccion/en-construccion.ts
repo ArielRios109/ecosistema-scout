@@ -9,30 +9,19 @@ import { MatIconModule } from '@angular/material/icon';
   selector: 'app-en-construccion',
   imports: [MatIconModule],
   template: `
-    <section class="vacio">
-      <mat-icon class="icono">{{ icono() }}</mat-icon>
-      <h1>{{ titulo() }}</h1>
-      <p>Este módulo está en construcción.</p>
+    <section class="flex-col items-center texto-centro texto-secundario p-4">
+      <mat-icon class="icono texto-primario">{{ icono() }}</mat-icon>
+      <h1 class="titulo-chico m-0 mt-3">{{ titulo() }}</h1>
+      <p class="mt-1">Este módulo está en construcción.</p>
     </section>
   `,
   styles: `
-    .vacio {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      padding: 48px 16px;
-      color: var(--mat-sys-on-surface-variant);
-    }
     .icono {
       width: 64px;
       height: 64px;
       font-size: 64px;
-      color: var(--mat-sys-primary);
     }
     h1 {
-      margin: 16px 0 4px;
-      font: var(--mat-sys-headline-small);
       color: var(--mat-sys-on-surface);
     }
   `,

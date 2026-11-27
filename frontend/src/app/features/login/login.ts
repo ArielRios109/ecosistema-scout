@@ -5,7 +5,6 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { Router } from '@angular/router';
 import { Auth } from '../../core/auth/auth';
 import { FondoLogin } from './fondo-login/fondo-login';
@@ -20,7 +19,6 @@ import { FondoLogin } from './fondo-login/fondo-login';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressBarModule,
   ],
   templateUrl: './login.html',
   styleUrl: './login.scss',

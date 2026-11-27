@@ -8,8 +8,10 @@
   position: relative;
   z-index: 2;
   gap: 8px;
-  background: var(--mat-sys-primary);
-  color: var(--mat-sys-on-primary);
+  // Barra clara (superficie) con el logo a color
+  background: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
 
   button {
     color: inherit;
@@ -25,16 +27,14 @@
 }
 
 .logo {
-  height: 32px;
+  height: 34px;
   width: auto;
 }
 
 .titulo {
-  font: var(--mat-sys-title-large);
-}
-
-.espacio {
-  flex: 1;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--mat-sys-primary);
 }
 
 .boton-usuario {
@@ -52,7 +52,7 @@
 
 .rol-usuario {
   font: var(--mat-sys-label-small);
-  opacity: 0.85;
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .datos-usuario {

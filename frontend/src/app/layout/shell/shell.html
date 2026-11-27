@@ -3,10 +3,10 @@
     <mat-icon>menu</mat-icon>
   </button>
   <a class="marca" routerLink="/inicio" aria-label="Talí, ir al inicio">
-    <img class="logo" src="img/tali-logo-blanco.svg" alt="" width="31" height="32" />
-    <span class="titulo">Talí</span>
+    <img class="logo" src="img/tali-logo.svg" alt="" width="40" height="34" />
+    <span class="titulo fuente-marca">Talí</span>
   </a>
-  <span class="espacio"></span>
+  <span class="flex-1"></span>
 
   @if (auth.usuario(); as usuario) {
     <button mat-button class="boton-usuario" [matMenuTriggerFor]="menuUsuario" aria-label="Opciones de la cuenta">

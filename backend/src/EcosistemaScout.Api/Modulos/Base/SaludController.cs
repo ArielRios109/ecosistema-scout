@@ -1,3 +1,4 @@
+using EcosistemaScout.Api.Comun;
 using EcosistemaScout.Api.Datos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,8 +14,8 @@ public record EstadoSalud(string Api, string BaseDatos, DateTime Fecha);
 public class SaludController(AppDbContext db, TimeProvider reloj) : ControllerBase
 {
     [HttpGet]
-    [ProducesResponseType<EstadoSalud>(StatusCodes.Status200OK)]
-    [ProducesResponseType<EstadoSalud>(StatusCodes.Status503ServiceUnavailable)]
+    [ProducesResponseType<ResponseData<EstadoSalud>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ResponseData<EstadoSalud>>(StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> Get(CancellationToken ct)
     {
         bool conectada;
@@ -28,6 +29,9 @@ public class SaludController(AppDbContext db, TimeProvider reloj) : ControllerBa
         }
 
         var estado = new EstadoSalud("ok", conectada ? "ok" : "sin conexión", reloj.GetUtcNow().UtcDateTime);
-        return conectada ? Ok(estado) : StatusCode(StatusCodes.Status503ServiceUnavailable, estado);
+        return conectada
+            ? Ok(ResponseData.Ok(estado))
+            : StatusCode(StatusCodes.Status503ServiceUnavailable,
+                ResponseData.ErrorConDatos("La base de datos no está disponible.", estado));
     }
 }

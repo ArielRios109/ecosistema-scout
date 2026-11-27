@@ -30,6 +30,8 @@
               }
             ],
             "styles": [
+              "@fontsource/nunito/latin-700.css",
+              "@fontsource/nunito/latin-800.css",
               "src/styles.scss"
             ]
           },

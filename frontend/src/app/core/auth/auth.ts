@@ -1,7 +1,8 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
+import { MOSTRAR_MENSAJE_EXITO } from '../api/respuesta-interceptor';
 
 export interface UsuarioActual {
   id: number;
@@ -40,7 +41,8 @@ export class Auth {
   }
 
   login(email: string, password: string): Observable<RespuestaLogin> {
-    return this.http.post<RespuestaLogin>('/api/auth/login', { email, password }).pipe(
+    const context = new HttpContext().set(MOSTRAR_MENSAJE_EXITO, true); // "Bienvenido, ..." en el snackbar
+    return this.http.post<RespuestaLogin>('/api/auth/login', { email, password }, { context }).pipe(
       tap((respuesta) => {
         const sesion: SesionGuardada = {
           token: respuesta.token,
