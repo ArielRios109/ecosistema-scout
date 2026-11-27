@@ -75,6 +75,10 @@ Módulos: `auth`, `base`, `miembros`, `inventario`, `finanzas` y `portal`. La ú
 | 409 | Choca con una regla de negocio | `"Ya existe un beneficiario con ese RUT."`, `"La unidad tiene beneficiarios activos."` |
 | 500 | Error inesperado (el detalle solo queda en el log del servidor) | `"Ocurrió un error en el servidor. Intenta nuevamente en unos minutos."` |
 
+### Límites de los campos
+
+Cada texto tiene el mismo largo máximo en el formulario (con contador visible), en la API (`[MaxLength]` con mensaje en español) y en la base de datos. Si se envía un JSON mal formado, la API responde 400 con un mensaje general, sin detalles internos.
+
 ### Listados paginados
 
 Los listados extensos reciben `pagina` (desde 1), `tamano` (entre 1 y 100; por defecto 20) y `buscar`, y devuelven:
@@ -83,7 +87,7 @@ Los listados extensos reciben `pagina` (desde 1), `tamano` (entre 1 y 100; por d
 { "elementos": [ ... ], "total": 57, "paginaActual": 1, "tamano": 20, "totalPaginas": 3 }
 ```
 
-El RUT se acepta con o sin puntos y guion, se guarda normalizado (`12345678-5`) y se entrega formateado (`12.345.678-5`). Las fechas sin hora van como `aaaa-mm-dd` y las fechas con hora en UTC (ISO 8601).
+El RUT se acepta con o sin puntos y guion (máximo 12 caracteres; se rechazan letras distintas de K y otros símbolos), se guarda normalizado (`12345678-5`) y se entrega formateado (`12.345.678-5`). Las fechas sin hora van como `aaaa-mm-dd` y las fechas con hora en UTC (ISO 8601).
 
 ## Autenticación y permisos
 
@@ -146,7 +150,9 @@ El frontend oculta los menús según el rol (`core/auth/permisos.ts`), pero la s
 |---|---|---|---|
 | GET | `/api/miembros/beneficiarios` | admin, dirigente | Listado paginado (`buscar` por nombre o RUT, `unidadId`, `patrullaId`, `estado`) |
 | GET | `/api/miembros/beneficiarios/{id}` | admin, dirigente | Ficha con edad, unidad y rama |
-| POST | `/api/miembros/beneficiarios` | admin, dirigente | Registra y anota el **ingreso** en el historial |
+| GET | `/api/miembros/beneficiarios/existe?rut=` | admin, dirigente | Indica si el RUT ya está inscrito (`{ existe, id, nombre }`); lo usa el formulario antes de pedir el resto |
+| POST | `/api/miembros/beneficiarios/inscripcion` | admin, dirigente | **Inscripción completa** en una sola transacción: beneficiario, apoderados (existentes o nuevos), contactos y ficha médica |
+| POST | `/api/miembros/beneficiarios` | admin, dirigente | Registra solo los datos del beneficiario y anota el **ingreso** en el historial |
 | PUT | `/api/miembros/beneficiarios/{id}` | admin, dirigente | Edita; el cambio de unidad o de patrulla queda en el historial |
 | POST | `/api/miembros/beneficiarios/{id}/retirar` | admin, dirigente | Retira (fecha y motivo); los datos se conservan |
 | POST | `/api/miembros/beneficiarios/{id}/reingresar` | admin, dirigente | Reingresa, en la misma unidad u otra |
@@ -162,6 +168,7 @@ El frontend oculta los menús según el rol (`core/auth/permisos.ts`), pero la s
 | Método | Ruta | Roles | Descripción |
 |---|---|---|---|
 | GET | `/api/miembros/apoderados` | admin, dirigente | Listado paginado (`buscar` por nombre, correo o RUT) |
+| GET | `/api/miembros/apoderados/existe?rut=` | admin, dirigente | Indica si el RUT ya está registrado (para ofrecer usarlo en vez de duplicarlo) |
 | GET | `/api/miembros/apoderados/{id}` | admin, dirigente | Detalle con sus beneficiarios |
 | POST / PUT | `/api/miembros/apoderados[/{id}]` | admin, dirigente | Registra o edita |
 | DELETE | `/api/miembros/apoderados/{id}` | admin, dirigente | Solo sin beneficiarios vinculados |
@@ -172,6 +179,7 @@ El frontend oculta los menús según el rol (`core/auth/permisos.ts`), pero la s
 | Método | Ruta | Roles | Descripción |
 |---|---|---|---|
 | GET | `/api/miembros/voluntarios` | admin, dirigente | Listado paginado con cargos vigentes (`buscar`, `unidadId`, `conCargo`) |
+| GET | `/api/miembros/voluntarios/existe?rut=` | admin, dirigente | Indica si el RUT ya está registrado |
 | GET | `/api/miembros/voluntarios/{id}` | admin, dirigente | Detalle con todos sus cargos (vigentes e historial) |
 | POST / PUT | `/api/miembros/voluntarios[/{id}]` | admin, dirigente | Registra o edita |
 | DELETE | `/api/miembros/voluntarios/{id}` | admin, dirigente | Solo si nunca tuvo cargos |

@@ -8,7 +8,6 @@ Capturas tomadas el 27-11-2026 con el sistema corriendo en Docker (`docker compo
 | `02-nueva-unidad.png` | Formulario de unidad en un diálogo (solo administración) |
 | `03-beneficiarios-listado.png` | Listado con búsqueda, filtros por unidad y estado, y paginación |
 | `04-beneficiarios-busqueda.png` | Búsqueda por nombre ("díaz") |
-| `05-nuevo-beneficiario-rut-invalido.png` | Formulario de beneficiario: el dígito verificador del RUT se valida al escribir |
 | `06-ficha-datos.png` | Ficha del beneficiario: pestaña Datos |
 | `07-ficha-apoderados.png` | Apoderados vinculados, con parentesco, principal y cuenta del Portal |
 | `08-ficha-contactos.png` | Contactos de emergencia |
@@ -26,3 +25,16 @@ Capturas tomadas el 27-11-2026 con el sistema corriendo en Docker (`docker compo
 | `20-pruebas-frontend.png` | 32 pruebas Vitest correctas |
 | `21-usuarios-listado.png` | Administración de usuarios: búsqueda, filtros y acciones |
 | `22-usuario-nuevo.png` | Creación de un usuario con contraseña temporal |
+
+## Refactor antes del PR
+
+| Archivo | Qué muestra |
+|---|---|
+| `23-inscripcion-rut-ya-inscrito.png` | Inscripción, paso 1: el RUT ya existe y se ofrece ir a su ficha |
+| `24-inscripcion-apoderados-y-contactos.png` | Paso 4: apoderados y contactos agregados antes de guardar |
+| `25-inscripcion-resumen.png` | Paso 6: resumen antes de inscribir |
+| `26-inscripcion-guardada.png` | Beneficiario inscrito (todo se guarda en una sola operación) |
+| `27-confirmar-eliminar.png` | Modal de confirmación global, variante "eliminar" |
+| `28-descartar-cambios.png` | Al salir con el formulario a medio llenar: "¿Descartar los cambios?" |
+| `29-celular-inscripcion.png` | Inscripción en celular (stepper vertical) |
+| `30-celular-apoderado-rut-registrado.png` | Apoderado en celular: RUT ya registrado y el resto de los campos bloqueados |
