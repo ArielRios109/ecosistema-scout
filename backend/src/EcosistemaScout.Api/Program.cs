@@ -15,8 +15,13 @@ var builder = WebApplication.CreateBuilder(args);
 // En producción, no permitir los valores de desarrollo que vienen en el repositorio.
 ValidacionProduccion.Verificar(builder.Configuration, builder.Environment);
 
+// ----- Usuario de la petición y bitácora de auditoría -----
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IUsuarioActual, ServicioUsuarioActual>();
+builder.Services.AddScoped<InterceptorBitacora>();
+
 // ----- Base de datos (PostgreSQL) -----
-builder.Services.AddDbContext<AppDbContext>(opciones =>
+builder.Services.AddDbContext<AppDbContext>((servicios, opciones) =>
 {
     var conexion = builder.Configuration.GetConnectionString("Default");
     if (string.IsNullOrWhiteSpace(conexion))
@@ -24,7 +29,8 @@ builder.Services.AddDbContext<AppDbContext>(opciones =>
         throw new InvalidOperationException(
             "Falta la cadena de conexión 'ConnectionStrings:Default'. Configúrala con user-secrets o variables de entorno (ver README).");
     }
-    opciones.UseNpgsql(conexion).UseSnakeCaseNamingConvention();
+    opciones.UseNpgsql(conexion).UseSnakeCaseNamingConvention()
+        .AddInterceptors(servicios.GetRequiredService<InterceptorBitacora>());
 });
 
 // ----- Usuarios y roles (ASP.NET Identity) -----

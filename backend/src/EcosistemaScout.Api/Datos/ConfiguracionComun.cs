@@ -13,6 +13,13 @@ internal static class ConfiguracionComun
         e.Property(x => x.UpdatedAt).HasDefaultValueSql("now()");
     }
 
+    /// <summary>Anotación que marca una columna con datos sensibles: la bitácora no guarda su valor.</summary>
+    public const string AnotacionSensible = "Talí:Sensible";
+
+    /// <summary>Marca la propiedad como sensible (por ejemplo, datos de salud cifrados).</summary>
+    public static PropertyBuilder<TPropiedad> Sensible<TPropiedad>(this PropertyBuilder<TPropiedad> propiedad)
+        => propiedad.HasAnnotation(AnotacionSensible, true);
+
     /// <summary>Restricción CHECK que limita una columna de texto a una lista de valores.</summary>
     public static string EnLista(string columna, params string[] valores)
         => $"{columna} IN ({string.Join(", ", valores.Select(v => $"'{v}'"))})";
