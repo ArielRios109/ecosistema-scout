@@ -55,6 +55,13 @@ app-root {
   padding-top: 8px;
 }
 
+// Diálogos: nunca más anchos ni más altos que la pantalla (16 px de margen por lado en el celular).
+// Material fija max-width: 80vw en línea; con este límite el ancho pedido (p. ej. 520px) se respeta en computador.
+.mat-mdc-dialog-panel {
+  max-width: calc(100vw - 32px) !important;
+  max-height: calc(100dvh - 32px);
+}
+
 // ----- Notificaciones (snackbar de Material 3, centrado arriba) -----
 // Colores por tipo usando los tokens del sistema de Material 3.
 .notificacion-error {
