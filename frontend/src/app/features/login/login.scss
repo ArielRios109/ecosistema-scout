@@ -20,8 +20,8 @@
   overflow: hidden;
   background: color-mix(in srgb, var(--mat-sys-surface) 84%, transparent);
   backdrop-filter: blur(14px) saturate(1.2);
-  border-color: rgb(255 255 255 / 0.35);
-  box-shadow: 0 12px 40px rgb(0 0 0 / 0.35);
+  border-color: color-mix(in srgb, var(--mat-sys-surface) 50%, transparent);
+  box-shadow: var(--mat-sys-level3);
 }
 
 .encabezado {
@@ -35,7 +35,7 @@
 .logo {
   height: 96px;
   width: auto;
-  filter: drop-shadow(0 2px 4px rgb(0 0 0 / 0.2));
+  filter: drop-shadow(0 2px 4px color-mix(in srgb, var(--mat-sys-shadow) 20%, transparent));
 }
 
 .nombre-app {
