@@ -4,6 +4,7 @@
 // Convención: en componentes y estilos NO se usan colores fijos; solo los tokens var(--mat-sys-*).
 @use '@angular/material' as mat;
 @use 'estilos/tema-colores' as tema;
+@use 'estilos/utilidades';
 
 html {
   height: 100%;
