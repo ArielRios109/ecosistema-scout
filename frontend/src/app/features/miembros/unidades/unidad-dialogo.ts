@@ -6,18 +6,31 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { RAMAS, Unidad } from '../miembros.models';
+import { protegerDialogo } from '../../../shared/confirmacion/confirmacion';
 
 /** Formulario para crear o editar una unidad (nombre y rama). */
 @Component({
   selector: 'app-unidad-dialogo',
-  imports: [ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatSelectModule],
+  imports: [
+    ReactiveFormsModule,
+    MatDialogModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+  ],
   template: `
     <h2 mat-dialog-title>{{ unidad ? 'Editar unidad' : 'Nueva unidad' }}</h2>
     <mat-dialog-content>
       <form [formGroup]="formulario" id="form-unidad" class="flex-col gap-1" (ngSubmit)="guardar()">
         <mat-form-field appearance="outline">
           <mat-label>Nombre</mat-label>
-          <input matInput formControlName="nombre" maxlength="80" placeholder="Ej.: Tropa Halcones" />
+          <input
+            matInput
+            formControlName="nombre"
+            maxlength="80"
+            placeholder="Ej.: Tropa Halcones"
+          />
           @if (formulario.controls.nombre.hasError('required')) {
             <mat-error>Ingresa el nombre de la unidad.</mat-error>
           }
@@ -36,8 +49,10 @@ import { RAMAS, Unidad } from '../miembros.models';
       </form>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close type="button">Cancelar</button>
-      <button mat-flat-button type="submit" form="form-unidad">{{ unidad ? 'Guardar' : 'Crear unidad' }}</button>
+      <button mat-button type="button" (click)="cancelar()">Cancelar</button>
+      <button mat-flat-button type="submit" form="form-unidad">
+        {{ unidad ? 'Guardar' : 'Crear unidad' }}
+      </button>
     </mat-dialog-actions>
   `,
 })
@@ -50,6 +65,7 @@ export class UnidadDialogo {
     nombre: [this.unidad?.nombre ?? '', [Validators.required, Validators.maxLength(80)]],
     rama: [this.unidad?.rama ?? '', Validators.required],
   });
+  protected readonly cancelar = protegerDialogo(this.ref, this.formulario);
 
   protected guardar(): void {
     if (this.formulario.invalid) {

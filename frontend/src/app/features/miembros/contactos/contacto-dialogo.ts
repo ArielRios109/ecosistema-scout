@@ -5,15 +5,27 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { ContactoEmergencia, SolicitudContacto } from '../miembros.models';
+import { protegerDialogo } from '../../../shared/confirmacion/confirmacion';
 
 /** Formulario de un contacto de emergencia (nombre, parentesco y teléfono). */
 @Component({
   selector: 'app-contacto-dialogo',
-  imports: [ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatInputModule],
+  imports: [
+    ReactiveFormsModule,
+    MatDialogModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+  ],
   template: `
     <h2 mat-dialog-title>{{ contacto ? 'Editar contacto' : 'Nuevo contacto de emergencia' }}</h2>
     <mat-dialog-content>
-      <form [formGroup]="formulario" id="form-contacto" class="flex-col gap-1" (ngSubmit)="guardar()">
+      <form
+        [formGroup]="formulario"
+        id="form-contacto"
+        class="flex-col gap-1"
+        (ngSubmit)="guardar()"
+      >
         <mat-form-field appearance="outline">
           <mat-label>Nombre</mat-label>
           <input matInput formControlName="nombre" maxlength="120" />
@@ -21,11 +33,22 @@ import { ContactoEmergencia, SolicitudContacto } from '../miembros.models';
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Parentesco o relación (opcional)</mat-label>
-          <input matInput formControlName="parentesco" maxlength="40" placeholder="Ej.: Tía, vecina" />
+          <input
+            matInput
+            formControlName="parentesco"
+            maxlength="40"
+            placeholder="Ej.: Tía, vecina"
+          />
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Teléfono</mat-label>
-          <input matInput type="tel" formControlName="telefono" maxlength="20" placeholder="+56 9 1234 5678" />
+          <input
+            matInput
+            type="tel"
+            formControlName="telefono"
+            maxlength="20"
+            placeholder="+56 9 1234 5678"
+          />
           @if (formulario.controls.telefono.hasError('required')) {
             <mat-error>Ingresa el teléfono.</mat-error>
           } @else {
@@ -35,8 +58,10 @@ import { ContactoEmergencia, SolicitudContacto } from '../miembros.models';
       </form>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close type="button">Cancelar</button>
-      <button mat-flat-button type="submit" form="form-contacto">{{ contacto ? 'Guardar' : 'Agregar' }}</button>
+      <button mat-button type="button" (click)="cancelar()">Cancelar</button>
+      <button mat-flat-button type="submit" form="form-contacto">
+        {{ contacto ? 'Guardar' : 'Agregar' }}
+      </button>
     </mat-dialog-actions>
   `,
 })
@@ -47,8 +72,12 @@ export class ContactoDialogo {
   protected readonly formulario = inject(FormBuilder).nonNullable.group({
     nombre: [this.contacto?.nombre ?? '', [Validators.required, Validators.maxLength(120)]],
     parentesco: [this.contacto?.parentesco ?? ''],
-    telefono: [this.contacto?.telefono ?? '', [Validators.required, Validators.pattern(/^\+?[0-9 ()-]{8,20}$/)]],
+    telefono: [
+      this.contacto?.telefono ?? '',
+      [Validators.required, Validators.pattern(/^\+?[0-9 ()-]{8,20}$/)],
+    ],
   });
+  protected readonly cancelar = protegerDialogo(this.ref, this.formulario);
 
   protected guardar(): void {
     if (this.formulario.invalid) {
@@ -56,6 +85,10 @@ export class ContactoDialogo {
       return;
     }
     const valor = this.formulario.getRawValue();
-    this.ref.close({ nombre: valor.nombre.trim(), parentesco: valor.parentesco.trim() || null, telefono: valor.telefono.trim() });
+    this.ref.close({
+      nombre: valor.nombre.trim(),
+      parentesco: valor.parentesco.trim() || null,
+      telefono: valor.telefono.trim(),
+    });
   }
 }

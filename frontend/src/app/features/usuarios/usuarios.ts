@@ -13,12 +13,17 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
-import { concatMap, debounceTime, filter, map, of, Subject } from 'rxjs';
+import { concatMap, debounceTime, map, of, Subject } from 'rxjs';
 import { NOMBRE_ROL } from '../../core/auth/permisos';
-import { confirmar } from '../../shared/confirmar/confirmar-dialogo';
+import { ConfirmacionService } from '../../shared/confirmacion/confirmacion';
 import { PasswordTemporalDialogo } from './password-temporal-dialogo';
 import { ResultadoUsuarioDialogo, UsuarioDialogo } from './usuario-dialogo';
-import { RolInfo, UsuarioConPasswordTemporal, UsuarioResumen, UsuariosService } from './usuarios.service';
+import {
+  RolInfo,
+  UsuarioConPasswordTemporal,
+  UsuarioResumen,
+  UsuariosService,
+} from './usuarios.service';
 
 /** Administración de usuarios: listado con búsqueda y filtros, creación, roles, estado y contraseñas temporales. */
 @Component({
@@ -42,6 +47,7 @@ import { RolInfo, UsuarioConPasswordTemporal, UsuarioResumen, UsuariosService } 
 export class Usuarios implements OnInit {
   private readonly servicio = inject(UsuariosService);
   private readonly dialogo = inject(MatDialog);
+  private readonly confirmacion = inject(ConfirmacionService);
 
   protected readonly usuarios = signal<UsuarioResumen[]>([]);
   protected readonly total = signal(0);
@@ -55,11 +61,15 @@ export class Usuarios implements OnInit {
   private readonly busqueda$ = new Subject<string>();
 
   private readonly esMovil = toSignal(
-    inject(BreakpointObserver).observe([Breakpoints.XSmall]).pipe(map((r) => r.matches)),
+    inject(BreakpointObserver)
+      .observe([Breakpoints.XSmall])
+      .pipe(map((r) => r.matches)),
     { initialValue: false },
   );
   protected readonly columnas = computed(() =>
-    this.esMovil() ? ['nombre', 'estado', 'acciones'] : ['nombre', 'email', 'roles', 'estado', 'ultimoAcceso', 'acciones'],
+    this.esMovil()
+      ? ['nombre', 'estado', 'acciones']
+      : ['nombre', 'email', 'roles', 'estado', 'ultimoAcceso', 'acciones'],
   );
 
   ngOnInit(): void {
@@ -103,9 +113,9 @@ export class Usuarios implements OnInit {
     this.abrirFormulario(usuario)
       .pipe(
         concatMap((datos) =>
-          this.servicio.editar(usuario.id, { nombre: datos.nombre, email: datos.email }).pipe(
-            concatMap(() => this.servicio.asignarRoles(usuario.id, datos.roles)),
-          ),
+          this.servicio
+            .editar(usuario.id, { nombre: datos.nombre, email: datos.email })
+            .pipe(concatMap(() => this.servicio.asignarRoles(usuario.id, datos.roles))),
         ),
       )
       .subscribe(() => this.cargar());
@@ -113,30 +123,30 @@ export class Usuarios implements OnInit {
 
   protected cambiarEstado(usuario: UsuarioResumen): void {
     const activar = !usuario.activo;
-    confirmar(this.dialogo, {
-      titulo: activar ? 'Activar usuario' : 'Desactivar usuario',
-      mensaje: activar
-        ? `${usuario.nombre} podrá volver a ingresar a Talí.`
-        : `${usuario.nombre} ya no podrá ingresar a Talí. Sus datos y su historial se conservan.`,
-      confirmar: activar ? 'Activar' : 'Desactivar',
-      peligroso: !activar,
-    })
-      .pipe(
-        filter(Boolean),
-        concatMap(() => this.servicio.cambiarEstado(usuario.id, activar)),
+    this.confirmacion
+      .ejecutar(
+        {
+          titulo: activar ? 'Activar usuario' : 'Desactivar usuario',
+          mensaje: activar
+            ? `${usuario.nombre} podrá volver a ingresar a Talí.`
+            : `${usuario.nombre} ya no podrá ingresar a Talí. Sus datos y su historial se conservan.`,
+          confirmar: activar ? 'Activar' : 'Desactivar',
+          peligroso: !activar,
+        },
+        () => this.servicio.cambiarEstado(usuario.id, activar),
       )
       .subscribe(() => this.cargar());
   }
 
   protected restablecer(usuario: UsuarioResumen): void {
-    confirmar(this.dialogo, {
-      titulo: 'Restablecer contraseña',
-      mensaje: `Se generará una contraseña temporal para ${usuario.nombre}, que deberá cambiarla al ingresar.`,
-      confirmar: 'Restablecer',
-    })
-      .pipe(
-        filter(Boolean),
-        concatMap(() => this.servicio.restablecerPassword(usuario.id)),
+    this.confirmacion
+      .ejecutar(
+        {
+          titulo: 'Restablecer contraseña',
+          mensaje: `Se generará una contraseña temporal para ${usuario.nombre}, que deberá cambiarla al ingresar.`,
+          confirmar: 'Restablecer',
+        },
+        () => this.servicio.restablecerPassword(usuario.id),
       )
       .subscribe((resultado) => {
         this.mostrarPassword(resultado);
@@ -160,7 +170,13 @@ export class Usuarios implements OnInit {
 
   private cargar(): void {
     this.servicio
-      .listar({ pagina: this.pagina, tamano: this.tamano, buscar: this.buscar, rol: this.rol, activo: this.activo })
+      .listar({
+        pagina: this.pagina,
+        tamano: this.tamano,
+        buscar: this.buscar,
+        rol: this.rol,
+        activo: this.activo,
+      })
       .subscribe((pagina) => {
         this.usuarios.set(pagina.elementos);
         this.total.set(pagina.total);

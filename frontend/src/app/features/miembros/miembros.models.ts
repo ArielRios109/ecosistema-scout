@@ -73,7 +73,8 @@ export interface SolicitudMovimiento {
   patrullaId?: number | null;
 }
 
-export type TipoMovimiento = 'ingreso' | 'cambio_unidad' | 'cambio_patrulla' | 'retiro' | 'reingreso';
+export type TipoMovimiento =
+  'ingreso' | 'cambio_unidad' | 'cambio_patrulla' | 'retiro' | 'reingreso';
 
 export interface MovimientoHistorial {
   id: number;
@@ -136,7 +137,18 @@ export interface VinculoApoderado {
   esPrincipal: boolean;
 }
 
-export const PARENTESCOS = ['Madre', 'Padre', 'Abuela', 'Abuelo', 'Tía', 'Tío', 'Hermana', 'Hermano', 'Tutor legal', 'Otro'];
+export const PARENTESCOS = [
+  'Madre',
+  'Padre',
+  'Abuela',
+  'Abuelo',
+  'Tía',
+  'Tío',
+  'Hermana',
+  'Hermano',
+  'Tutor legal',
+  'Otro',
+];
 
 export interface ContactoEmergencia {
   id: number;

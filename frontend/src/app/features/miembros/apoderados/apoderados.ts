@@ -16,7 +16,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { concatMap, debounceTime, filter, map, Subject } from 'rxjs';
 import { Auth } from '../../../core/auth/auth';
 import { ROLES } from '../../../core/auth/permisos';
-import { confirmar } from '../../../shared/confirmar/confirmar-dialogo';
+import { ConfirmacionService } from '../../../shared/confirmacion/confirmacion';
 import { PasswordTemporalDialogo } from '../../usuarios/password-temporal-dialogo';
 import { ApoderadoResumen, SolicitudApoderado } from '../miembros.models';
 import { ApoderadosService } from '../miembros.service';
@@ -45,6 +45,7 @@ import { ApoderadoDialogo } from './apoderado-dialogo';
 export class Apoderados implements OnInit {
   private readonly servicio = inject(ApoderadosService);
   private readonly dialogo = inject(MatDialog);
+  private readonly confirmacion = inject(ConfirmacionService);
   protected readonly esAdmin = inject(Auth).tieneRol(ROLES.administrador);
 
   protected readonly apoderados = signal<ApoderadoResumen[]>([]);
@@ -55,10 +56,19 @@ export class Apoderados implements OnInit {
   private readonly busqueda$ = new Subject<string>();
 
   protected readonly esMovil = toSignal(
-    inject(BreakpointObserver).observe([Breakpoints.XSmall]).pipe(map((r) => r.matches)),
+    inject(BreakpointObserver)
+      .observe([Breakpoints.XSmall])
+      .pipe(map((r) => r.matches)),
     { initialValue: false },
   );
-  protected readonly columnas = ['nombre', 'rut', 'contacto', 'beneficiarios', 'cuenta', 'acciones'];
+  protected readonly columnas = [
+    'nombre',
+    'rut',
+    'contacto',
+    'beneficiarios',
+    'cuenta',
+    'acciones',
+  ];
 
   ngOnInit(): void {
     this.busqueda$.pipe(debounceTime(350)).subscribe(() => {
@@ -92,38 +102,45 @@ export class Apoderados implements OnInit {
 
   protected verBeneficiarios(apoderado: ApoderadoResumen): void {
     this.servicio.obtener(apoderado.id).subscribe((detalle) =>
-      this.dialogo.open(ApoderadoBeneficiariosDialogo, { data: detalle, width: '480px', maxWidth: '95vw' }),
+      this.dialogo.open(ApoderadoBeneficiariosDialogo, {
+        data: detalle,
+        width: '480px',
+      }),
     );
   }
 
   protected crearCuenta(apoderado: ApoderadoResumen): void {
-    confirmar(this.dialogo, {
-      titulo: 'Crear cuenta del Portal',
-      mensaje: `Se creará una cuenta para ${apoderado.email} con una contraseña temporal, que deberá cambiar al ingresar.`,
-      confirmar: 'Crear cuenta',
-    })
-      .pipe(
-        filter(Boolean),
-        concatMap(() => this.servicio.crearCuenta(apoderado.id)),
+    this.confirmacion
+      .ejecutar(
+        {
+          titulo: 'Crear cuenta del Portal',
+          mensaje: `Se creará una cuenta para ${apoderado.email} con una contraseña temporal, que deberá cambiar al ingresar.`,
+          confirmar: 'Crear cuenta',
+        },
+        () => this.servicio.crearCuenta(apoderado.id),
       )
       .subscribe((cuenta) => {
         if (cuenta.passwordTemporal) {
-          this.dialogo.open(PasswordTemporalDialogo, { data: cuenta, width: '440px', disableClose: true });
+          this.dialogo.open(PasswordTemporalDialogo, {
+            data: cuenta,
+            width: '440px',
+            disableClose: true,
+          });
         }
         this.cargar();
       });
   }
 
   protected eliminar(apoderado: ApoderadoResumen): void {
-    confirmar(this.dialogo, {
-      titulo: 'Eliminar apoderado',
-      mensaje: `Se eliminarán los datos de ${apoderado.nombres} ${apoderado.apellidos}. Esta acción no se puede deshacer.`,
-      confirmar: 'Eliminar',
-      peligroso: true,
-    })
-      .pipe(
-        filter(Boolean),
-        concatMap(() => this.servicio.eliminar(apoderado.id)),
+    this.confirmacion
+      .ejecutar(
+        {
+          tipo: 'eliminar',
+          titulo: 'Eliminar apoderado',
+          mensaje: `Se eliminarán los datos de ${apoderado.nombres} ${apoderado.apellidos}. Esta acción no se puede deshacer.`,
+          confirmar: 'Eliminar',
+        },
+        () => this.servicio.eliminar(apoderado.id),
       )
       .subscribe(() => this.cargar());
   }
@@ -133,16 +150,17 @@ export class Apoderados implements OnInit {
       .open<ApoderadoDialogo, ApoderadoResumen | undefined, SolicitudApoderado>(ApoderadoDialogo, {
         data: apoderado,
         width: '520px',
-        maxWidth: '95vw',
       })
       .afterClosed()
       .pipe(filter((datos): datos is SolicitudApoderado => !!datos));
   }
 
   private cargar(): void {
-    this.servicio.listar({ pagina: this.pagina, tamano: this.tamano, buscar: this.buscar }).subscribe((pagina) => {
-      this.apoderados.set(pagina.elementos);
-      this.total.set(pagina.total);
-    });
+    this.servicio
+      .listar({ pagina: this.pagina, tamano: this.tamano, buscar: this.buscar })
+      .subscribe((pagina) => {
+        this.apoderados.set(pagina.elementos);
+        this.total.set(pagina.total);
+      });
   }
 }

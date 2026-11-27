@@ -8,11 +8,19 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
   imports: [RouterOutlet, RouterLink, RouterLinkActive, MatTabsModule],
   template: `
     <h1 class="titulo-grande m-0">Miembros</h1>
-    <p class="texto-secundario m-0 mt-1">Beneficiarios, unidades, apoderados y voluntarios del grupo.</p>
+    <p class="texto-secundario m-0 mt-1">
+      Beneficiarios, unidades, apoderados y voluntarios del grupo.
+    </p>
 
     <nav mat-tab-nav-bar [tabPanel]="panel" class="mt-2 mb-3" aria-label="Secciones de Miembros">
       @for (pestana of pestanas; track pestana.ruta) {
-        <a mat-tab-link [routerLink]="pestana.ruta" routerLinkActive #rla="routerLinkActive" [active]="rla.isActive">
+        <a
+          mat-tab-link
+          [routerLink]="pestana.ruta"
+          routerLinkActive
+          #rla="routerLinkActive"
+          [active]="rla.isActive"
+        >
           {{ pestana.etiqueta }}
         </a>
       }

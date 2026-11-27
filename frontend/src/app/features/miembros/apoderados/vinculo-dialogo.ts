@@ -12,6 +12,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { debounceTime, filter, map, of, startWith, switchMap } from 'rxjs';
 import { ApoderadoResumen, PARENTESCOS, VinculoApoderado } from '../miembros.models';
 import { ApoderadosService } from '../miembros.service';
+import { protegerDialogo } from '../../../shared/confirmacion/confirmacion';
 
 export interface DatosVinculoDialogo {
   nombreBeneficiario: string;
@@ -43,25 +44,45 @@ export interface ResultadoVinculo {
   template: `
     <h2 mat-dialog-title>{{ datos.vinculo ? 'Editar vínculo' : 'Vincular apoderado' }}</h2>
     <mat-dialog-content>
-      <form [formGroup]="formulario" id="form-vinculo" class="flex-col gap-1" (ngSubmit)="guardar()">
+      <form
+        [formGroup]="formulario"
+        id="form-vinculo"
+        class="flex-col gap-1"
+        (ngSubmit)="guardar()"
+      >
         @if (datos.vinculo) {
           <p class="m-0 mb-2">
-            <strong>{{ datos.vinculo.nombre }}</strong> · apoderado de {{ datos.nombreBeneficiario }}
+            <strong>{{ datos.vinculo.nombre }}</strong> · apoderado de
+            {{ datos.nombreBeneficiario }}
           </p>
         } @else {
           <mat-form-field appearance="outline">
             <mat-label>Buscar apoderado</mat-label>
             <mat-icon matPrefix>search</mat-icon>
-            <input matInput formControlName="busqueda" [matAutocomplete]="auto" placeholder="Nombre, correo o RUT" />
-            <mat-autocomplete #auto="matAutocomplete" [displayWith]="mostrar" (optionSelected)="elegir($event.option.value)">
+            <input
+              matInput
+              formControlName="busqueda"
+              [matAutocomplete]="auto"
+              placeholder="Nombre, correo o RUT"
+            />
+            <mat-autocomplete
+              #auto="matAutocomplete"
+              [displayWith]="mostrar"
+              (optionSelected)="elegir($event.option.value)"
+            >
               @for (a of resultados(); track a.id) {
                 <mat-option [value]="a">
-                  {{ a.nombres }} {{ a.apellidos }} <small class="texto-secundario">· {{ a.rut }}</small>
+                  {{ a.nombres }} {{ a.apellidos }}
+                  <small class="texto-secundario">· {{ a.rut }}</small>
                 </mat-option>
               }
             </mat-autocomplete>
-            @if (formulario.controls.apoderadoId.touched && formulario.controls.apoderadoId.invalid) {
-              <mat-hint class="texto-error">Elige un apoderado de la lista o registra uno nuevo.</mat-hint>
+            @if (
+              formulario.controls.apoderadoId.touched && formulario.controls.apoderadoId.invalid
+            ) {
+              <mat-hint class="texto-error"
+                >Elige un apoderado de la lista o registra uno nuevo.</mat-hint
+              >
             }
           </mat-form-field>
           <button mat-button type="button" class="nuevo" (click)="registrarNuevo()">
@@ -83,8 +104,10 @@ export interface ResultadoVinculo {
       </form>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close type="button">Cancelar</button>
-      <button mat-flat-button type="submit" form="form-vinculo">{{ datos.vinculo ? 'Guardar' : 'Vincular' }}</button>
+      <button mat-button type="button" (click)="cancelar()">Cancelar</button>
+      <button mat-flat-button type="submit" form="form-vinculo">
+        {{ datos.vinculo ? 'Guardar' : 'Vincular' }}
+      </button>
     </mat-dialog-actions>
   `,
   styles: `
@@ -106,6 +129,7 @@ export class VinculoDialogo {
     parentesco: [this.datos.vinculo?.parentesco ?? '', Validators.required],
     esPrincipal: [this.datos.vinculo?.esPrincipal ?? false],
   });
+  protected readonly cancelar = protegerDialogo(this.ref, this.formulario);
 
   protected readonly resultados = toSignal(
     this.formulario.controls.busqueda.valueChanges.pipe(
@@ -129,7 +153,9 @@ export class VinculoDialogo {
   }
 
   protected mostrar(apoderado: ApoderadoResumen | string | null): string {
-    return typeof apoderado === 'object' && apoderado ? `${apoderado.nombres} ${apoderado.apellidos}` : (apoderado ?? '');
+    return typeof apoderado === 'object' && apoderado
+      ? `${apoderado.nombres} ${apoderado.apellidos}`
+      : (apoderado ?? '');
   }
 
   protected elegir(apoderado: ApoderadoResumen): void {
@@ -151,6 +177,10 @@ export class VinculoDialogo {
       return;
     }
     const valor = this.formulario.getRawValue();
-    this.ref.close({ apoderadoId: valor.apoderadoId!, parentesco: valor.parentesco!, esPrincipal: !!valor.esPrincipal });
+    this.ref.close({
+      apoderadoId: valor.apoderadoId!,
+      parentesco: valor.parentesco!,
+      esPrincipal: !!valor.esPrincipal,
+    });
   }
 }

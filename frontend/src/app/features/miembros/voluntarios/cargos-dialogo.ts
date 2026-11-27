@@ -4,16 +4,16 @@ import { FormBuilder, FormGroupDirective, ReactiveFormsModule, Validators } from
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { concatMap, filter, startWith } from 'rxjs';
+import { filter, startWith } from 'rxjs';
 import { aFechaIso, formatearFecha, proveerFechas } from '../../../core/i18n/fechas';
-import { confirmar } from '../../../shared/confirmar/confirmar-dialogo';
+import { ConfirmacionService, protegerDialogo } from '../../../shared/confirmacion/confirmacion';
 import { Cargo, CARGOS_SUGERIDOS, Unidad, VoluntarioDetalle } from '../miembros.models';
 import { UnidadesService, VoluntariosService } from '../miembros.service';
 
@@ -46,16 +46,27 @@ import { UnidadesService, VoluntariosService } from '../miembros.service';
               <mat-icon matListItemIcon>{{ c.vigente ? 'badge' : 'history' }}</mat-icon>
               <span matListItemTitle>{{ c.cargo }}{{ c.unidad ? ' · ' + c.unidad : '' }}</span>
               <span matListItemLine>
-                Desde {{ fecha(c.fechaInicio) }}{{ c.fechaTermino ? ' hasta ' + fecha(c.fechaTermino) : '' }}
+                Desde {{ fecha(c.fechaInicio)
+                }}{{ c.fechaTermino ? ' hasta ' + fecha(c.fechaTermino) : '' }}
                 {{ c.vigente ? '· Vigente' : '' }}
               </span>
               <div matListItemMeta class="flex">
                 @if (c.vigente) {
-                  <button mat-icon-button (click)="terminar(c)" matTooltip="Terminar cargo" aria-label="Terminar cargo">
+                  <button
+                    mat-icon-button
+                    (click)="terminar(c)"
+                    matTooltip="Terminar cargo"
+                    aria-label="Terminar cargo"
+                  >
                     <mat-icon>event_busy</mat-icon>
                   </button>
                 }
-                <button mat-icon-button (click)="eliminar(c)" matTooltip="Eliminar (registro erróneo)" aria-label="Eliminar cargo">
+                <button
+                  mat-icon-button
+                  (click)="eliminar(c)"
+                  matTooltip="Eliminar (registro erróneo)"
+                  aria-label="Eliminar cargo"
+                >
                   <mat-icon>delete</mat-icon>
                 </button>
               </div>
@@ -87,7 +98,13 @@ import { UnidadesService, VoluntariosService } from '../miembros.service';
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Desde</mat-label>
-          <input matInput formControlName="fechaInicio" [matDatepicker]="picker" [max]="hoy" placeholder="dd-mm-aaaa" />
+          <input
+            matInput
+            formControlName="fechaInicio"
+            [matDatepicker]="picker"
+            [max]="hoy"
+            placeholder="dd-mm-aaaa"
+          />
           <mat-datepicker-toggle matIconSuffix [for]="picker" />
           <mat-datepicker #picker />
           <mat-error>Ingresa una fecha válida.</mat-error>
@@ -95,7 +112,7 @@ import { UnidadesService, VoluntariosService } from '../miembros.service';
       </form>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close type="button">Cerrar</button>
+      <button mat-button type="button" (click)="cancelar()">Cerrar</button>
       <button mat-flat-button type="submit" form="form-cargo">Asignar cargo</button>
     </mat-dialog-actions>
   `,
@@ -127,7 +144,8 @@ import { UnidadesService, VoluntariosService } from '../miembros.service';
 })
 export class CargosDialogo {
   private readonly servicio = inject(VoluntariosService);
-  private readonly dialogo = inject(MatDialog);
+  private readonly ref = inject(MatDialogRef<CargosDialogo>);
+  private readonly confirmacion = inject(ConfirmacionService);
   protected readonly voluntario = signal(inject<VoluntarioDetalle>(MAT_DIALOG_DATA));
   protected readonly unidades = signal<Unidad[]>([]);
   protected readonly hoy = new Date();
@@ -139,15 +157,20 @@ export class CargosDialogo {
     unidadId: [null as number | null],
     fechaInicio: [new Date() as Date | null, Validators.required],
   });
+  protected readonly cancelar = protegerDialogo(this.ref, this.formulario);
 
-  private readonly textoCargo = toSignal(this.formulario.controls.cargo.valueChanges.pipe(startWith('')));
+  private readonly textoCargo = toSignal(
+    this.formulario.controls.cargo.valueChanges.pipe(startWith('')),
+  );
   protected readonly sugerencias = computed(() => {
     const texto = (this.textoCargo() ?? '').toLowerCase();
     return CARGOS_SUGERIDOS.filter((c) => c.toLowerCase().includes(texto));
   });
 
   constructor() {
-    inject(UnidadesService).listar().subscribe((u) => this.unidades.set(u));
+    inject(UnidadesService)
+      .listar()
+      .subscribe((u) => this.unidades.set(u));
   }
 
   protected agregar(): void {
@@ -166,33 +189,37 @@ export class CargosDialogo {
       .subscribe((v) => {
         this.voluntario.set(v);
         // resetForm también limpia el estado "enviado", para que no aparezcan errores en el formulario vacío.
-        this.directivaFormulario().resetForm({ cargo: '', unidadId: null, fechaInicio: new Date() });
+        this.directivaFormulario().resetForm({
+          cargo: '',
+          unidadId: null,
+          fechaInicio: new Date(),
+        });
       });
   }
 
   protected terminar(cargo: Cargo): void {
-    confirmar(this.dialogo, {
-      titulo: 'Terminar cargo',
-      mensaje: `El cargo "${cargo.cargo}" quedará terminado con fecha de hoy y pasará al historial.`,
-      confirmar: 'Terminar',
-    })
-      .pipe(
-        filter(Boolean),
-        concatMap(() => this.servicio.terminarCargo(this.voluntario().id, cargo.id, null)),
+    this.confirmacion
+      .ejecutar(
+        {
+          titulo: 'Terminar cargo',
+          mensaje: `El cargo "${cargo.cargo}" quedará terminado con fecha de hoy y pasará al historial.`,
+          confirmar: 'Terminar',
+        },
+        () => this.servicio.terminarCargo(this.voluntario().id, cargo.id, null),
       )
       .subscribe((v) => this.voluntario.set(v));
   }
 
   protected eliminar(cargo: Cargo): void {
-    confirmar(this.dialogo, {
-      titulo: 'Eliminar cargo',
-      mensaje: `Se eliminará el registro "${cargo.cargo}". Úsalo solo si fue un error; para cerrar un cargo, termínalo.`,
-      confirmar: 'Eliminar',
-      peligroso: true,
-    })
-      .pipe(
-        filter(Boolean),
-        concatMap(() => this.servicio.eliminarCargo(this.voluntario().id, cargo.id)),
+    this.confirmacion
+      .ejecutar(
+        {
+          tipo: 'eliminar',
+          titulo: 'Eliminar cargo',
+          mensaje: `Se eliminará el registro "${cargo.cargo}". Úsalo solo si fue un error; para cerrar un cargo, termínalo.`,
+          confirmar: 'Eliminar',
+        },
+        () => this.servicio.eliminarCargo(this.voluntario().id, cargo.id),
       )
       .subscribe((v) => this.voluntario.set(v));
   }

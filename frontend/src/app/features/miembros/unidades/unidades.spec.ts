@@ -28,7 +28,11 @@ async function mostrar(roles: string[]) {
   const fixture = TestBed.createComponent(Unidades);
   fixture.detectChanges();
   const http = TestBed.inject(HttpTestingController);
-  http.expectOne((r) => r.url === '/api/miembros/unidades' && r.params.get('incluirInactivas') === 'false').flush(UNIDADES);
+  http
+    .expectOne(
+      (r) => r.url === '/api/miembros/unidades' && r.params.get('incluirInactivas') === 'false',
+    )
+    .flush(UNIDADES);
   await fixture.whenStable();
   return fixture.nativeElement as HTMLElement;
 }

@@ -56,7 +56,9 @@ export class Beneficiarios implements OnInit {
   private readonly busqueda$ = new Subject<string>();
 
   protected readonly esMovil = toSignal(
-    inject(BreakpointObserver).observe([Breakpoints.XSmall]).pipe(map((r) => r.matches)),
+    inject(BreakpointObserver)
+      .observe([Breakpoints.XSmall])
+      .pipe(map((r) => r.matches)),
     { initialValue: false },
   );
   protected readonly columnas = ['nombre', 'rut', 'edad', 'unidad', 'estado', 'acciones'];
@@ -122,4 +124,3 @@ export class Beneficiarios implements OnInit {
       });
   }
 }
-

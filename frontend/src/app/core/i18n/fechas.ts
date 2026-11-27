@@ -1,5 +1,11 @@
 import { Injectable, Provider } from '@angular/core';
-import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE, MatDateFormats, NativeDateAdapter } from '@angular/material/core';
+import {
+  DateAdapter,
+  MAT_DATE_FORMATS,
+  MAT_DATE_LOCALE,
+  MatDateFormats,
+  NativeDateAdapter,
+} from '@angular/material/core';
 
 /**
  * Adaptador de fechas para los datepicker de Material: se escriben y muestran como dd-mm-aaaa

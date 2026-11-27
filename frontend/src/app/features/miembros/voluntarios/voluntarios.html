@@ -122,7 +122,9 @@
       <tr mat-header-row *matHeaderRowDef="columnas"></tr>
       <tr mat-row *matRowDef="let fila; columns: columnas"></tr>
       <tr class="mat-row" *matNoDataRow>
-        <td class="mat-cell p-3 texto-secundario" [attr.colspan]="columnas.length">No hay voluntarios que coincidan.</td>
+        <td class="mat-cell p-3 texto-secundario" [attr.colspan]="columnas.length">
+          No hay voluntarios que coincidan.
+        </td>
       </tr>
     </table>
   </div>

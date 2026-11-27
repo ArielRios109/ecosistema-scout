@@ -14,8 +14,9 @@ import { UsuarioConPasswordTemporal } from './usuarios.service';
     <h2 mat-dialog-title>Contraseña temporal</h2>
     <mat-dialog-content>
       <p class="m-0">
-        Comparte esta contraseña con <strong>{{ datos.usuario.nombre }}</strong> ({{ datos.usuario.email }}).
-        Al ingresar, el sistema le pedirá crear su propia contraseña.
+        Comparte esta contraseña con <strong>{{ datos.usuario.nombre }}</strong> ({{
+          datos.usuario.email
+        }}). Al ingresar, el sistema le pedirá crear su propia contraseña.
       </p>
       <div class="clave flex items-center justify-between gap-2 mt-3 p-3">
         <code>{{ datos.passwordTemporal }}</code>

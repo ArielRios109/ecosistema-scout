@@ -7,6 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { NOMBRE_ROL } from '../../core/auth/permisos';
 import { RolInfo, UsuarioResumen } from './usuarios.service';
+import { protegerDialogo } from '../../shared/confirmacion/confirmacion';
 
 export interface DatosUsuarioDialogo {
   usuario?: UsuarioResumen;
@@ -22,11 +23,23 @@ export interface ResultadoUsuarioDialogo {
 /** Formulario para crear o editar un usuario (nombre, correo y roles). */
 @Component({
   selector: 'app-usuario-dialogo',
-  imports: [ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatSelectModule],
+  imports: [
+    ReactiveFormsModule,
+    MatDialogModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+  ],
   template: `
     <h2 mat-dialog-title>{{ datos.usuario ? 'Editar usuario' : 'Nuevo usuario' }}</h2>
     <mat-dialog-content>
-      <form [formGroup]="formulario" class="flex-col gap-1" id="form-usuario" (ngSubmit)="guardar()">
+      <form
+        [formGroup]="formulario"
+        class="flex-col gap-1"
+        id="form-usuario"
+        (ngSubmit)="guardar()"
+      >
         <mat-form-field appearance="outline">
           <mat-label>Nombre</mat-label>
           <input matInput formControlName="nombre" maxlength="120" />
@@ -57,13 +70,14 @@ export interface ResultadoUsuarioDialogo {
         </mat-form-field>
         @if (!datos.usuario) {
           <p class="texto-secundario m-0 mt-2">
-            Se generará una contraseña temporal que la persona deberá cambiar al ingresar por primera vez.
+            Se generará una contraseña temporal que la persona deberá cambiar al ingresar por
+            primera vez.
           </p>
         }
       </form>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close type="button">Cancelar</button>
+      <button mat-button type="button" (click)="cancelar()">Cancelar</button>
       <button mat-flat-button type="submit" form="form-usuario">
         {{ datos.usuario ? 'Guardar cambios' : 'Crear usuario' }}
       </button>
@@ -76,9 +90,13 @@ export class UsuarioDialogo {
 
   protected readonly formulario = inject(FormBuilder).nonNullable.group({
     nombre: [this.datos.usuario?.nombre ?? '', [Validators.required, Validators.maxLength(120)]],
-    email: [this.datos.usuario?.email ?? '', [Validators.required, Validators.email, Validators.maxLength(120)]],
+    email: [
+      this.datos.usuario?.email ?? '',
+      [Validators.required, Validators.email, Validators.maxLength(120)],
+    ],
     roles: [this.datos.usuario?.roles ?? ([] as string[]), Validators.required],
   });
+  protected readonly cancelar = protegerDialogo(this.ref, this.formulario);
 
   protected nombreRol(rol: string): string {
     return NOMBRE_ROL[rol] ?? rol;

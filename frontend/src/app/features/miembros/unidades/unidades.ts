@@ -10,7 +10,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { concatMap, filter } from 'rxjs';
 import { Auth } from '../../../core/auth/auth';
 import { ROLES } from '../../../core/auth/permisos';
-import { confirmar } from '../../../shared/confirmar/confirmar-dialogo';
+import { ConfirmacionService } from '../../../shared/confirmacion/confirmacion';
 import { DatosTextoDialogo, TextoDialogo } from '../../../shared/texto-dialogo/texto-dialogo';
 import { etiquetaRama, Patrulla, Unidad } from '../miembros.models';
 import { UnidadesService } from '../miembros.service';
@@ -19,13 +19,22 @@ import { UnidadDialogo } from './unidad-dialogo';
 /** Unidades del grupo con sus patrullas: crear, editar, activar y desactivar. */
 @Component({
   selector: 'app-unidades',
-  imports: [FormsModule, MatCardModule, MatButtonModule, MatIconModule, MatMenuModule, MatChipsModule, MatSlideToggleModule],
+  imports: [
+    FormsModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatMenuModule,
+    MatChipsModule,
+    MatSlideToggleModule,
+  ],
   templateUrl: './unidades.html',
   styleUrl: './unidades.scss',
 })
 export class Unidades implements OnInit {
   private readonly servicio = inject(UnidadesService);
   private readonly dialogo = inject(MatDialog);
+  private readonly confirmacion = inject(ConfirmacionService);
 
   protected readonly unidades = signal<Unidad[]>([]);
   protected readonly esAdmin = inject(Auth).tieneRol(ROLES.administrador);
@@ -37,7 +46,9 @@ export class Unidades implements OnInit {
   }
 
   protected cargar(): void {
-    this.servicio.listar(this.incluirInactivas).subscribe((unidades) => this.unidades.set(unidades));
+    this.servicio
+      .listar(this.incluirInactivas)
+      .subscribe((unidades) => this.unidades.set(unidades));
   }
 
   protected nuevaUnidad(): void {
@@ -64,35 +75,47 @@ export class Unidades implements OnInit {
 
   protected cambiarEstadoUnidad(unidad: Unidad): void {
     const activar = !unidad.activa;
-    confirmar(this.dialogo, {
-      titulo: activar ? 'Activar unidad' : 'Desactivar unidad',
-      mensaje: activar
-        ? `${unidad.nombre} volverá a estar disponible.`
-        : `${unidad.nombre} dejará de aparecer en los listados. Sus datos e historial se conservan.`,
-      confirmar: activar ? 'Activar' : 'Desactivar',
-      peligroso: !activar,
-    })
-      .pipe(
-        filter(Boolean),
-        concatMap(() => this.servicio.cambiarEstado(unidad.id, activar)),
+    this.confirmacion
+      .ejecutar(
+        {
+          titulo: activar ? 'Activar unidad' : 'Desactivar unidad',
+          mensaje: activar
+            ? `${unidad.nombre} volverá a estar disponible.`
+            : `${unidad.nombre} dejará de aparecer en los listados. Sus datos e historial se conservan.`,
+          confirmar: activar ? 'Activar' : 'Desactivar',
+          peligroso: !activar,
+        },
+        () => this.servicio.cambiarEstado(unidad.id, activar),
       )
       .subscribe(() => this.cargar());
   }
 
   protected nuevaPatrulla(unidad: Unidad): void {
-    this.pedirNombre({ titulo: `Nueva patrulla en ${unidad.nombre}`, etiqueta: 'Nombre de la patrulla', maximo: 80, confirmar: 'Crear' })
+    this.pedirNombre({
+      titulo: `Nueva patrulla en ${unidad.nombre}`,
+      etiqueta: 'Nombre de la patrulla',
+      maximo: 80,
+      confirmar: 'Crear',
+    })
       .pipe(concatMap((nombre) => this.servicio.crearPatrulla(unidad.id, nombre)))
       .subscribe(() => this.cargar());
   }
 
   protected editarPatrulla(patrulla: Patrulla): void {
-    this.pedirNombre({ titulo: 'Editar patrulla', etiqueta: 'Nombre de la patrulla', valor: patrulla.nombre, maximo: 80 })
+    this.pedirNombre({
+      titulo: 'Editar patrulla',
+      etiqueta: 'Nombre de la patrulla',
+      valor: patrulla.nombre,
+      maximo: 80,
+    })
       .pipe(concatMap((nombre) => this.servicio.editarPatrulla(patrulla.id, nombre)))
       .subscribe(() => this.cargar());
   }
 
   protected cambiarEstadoPatrulla(patrulla: Patrulla): void {
-    this.servicio.cambiarEstadoPatrulla(patrulla.id, !patrulla.activa).subscribe(() => this.cargar());
+    this.servicio
+      .cambiarEstadoPatrulla(patrulla.id, !patrulla.activa)
+      .subscribe(() => this.cargar());
   }
 
   private pedirNombre(datos: DatosTextoDialogo) {

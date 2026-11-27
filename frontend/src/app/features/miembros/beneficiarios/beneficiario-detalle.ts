@@ -8,14 +8,28 @@ import { formatearFecha } from '../../../core/i18n/fechas';
 import { ApoderadosBeneficiario } from '../apoderados/apoderados-beneficiario';
 import { ContactosBeneficiario } from '../contactos/contactos-beneficiario';
 import { FichaMedicaBeneficiario } from '../ficha-medica/ficha-medica-beneficiario';
-import { BeneficiarioDetalle as Detalle, etiquetaRama, MovimientoHistorial, TIPOS_MOVIMIENTO } from '../miembros.models';
+import {
+  BeneficiarioDetalle as Detalle,
+  etiquetaRama,
+  MovimientoHistorial,
+  TIPOS_MOVIMIENTO,
+} from '../miembros.models';
 import { BeneficiariosService } from '../miembros.service';
 import { AccionesBeneficiario } from './acciones-beneficiario';
 
 /** Ficha del beneficiario: datos, apoderados, contactos, ficha médica e historial de movimientos. */
 @Component({
   selector: 'app-beneficiario-detalle',
-  imports: [RouterLink, MatButtonModule, MatCardModule, MatIconModule, MatTabsModule, ApoderadosBeneficiario, ContactosBeneficiario, FichaMedicaBeneficiario],
+  imports: [
+    RouterLink,
+    MatButtonModule,
+    MatCardModule,
+    MatIconModule,
+    MatTabsModule,
+    ApoderadosBeneficiario,
+    ContactosBeneficiario,
+    FichaMedicaBeneficiario,
+  ],
   providers: [AccionesBeneficiario],
   templateUrl: './beneficiario-detalle.html',
   styleUrl: './beneficiario-detalle.scss',

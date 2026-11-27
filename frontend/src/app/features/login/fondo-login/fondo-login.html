@@ -7,7 +7,14 @@
       [style.background-image]="'url(' + imagen(escena) + ')'"
     >
       @if (conVideo()) {
-        <video #video class="video" [poster]="imagen(escena)" muted playsinline preload="none"></video>
+        <video
+          #video
+          class="video"
+          [poster]="imagen(escena)"
+          muted
+          playsinline
+          preload="none"
+        ></video>
       }
     </div>
   }

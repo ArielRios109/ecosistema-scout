@@ -11,7 +11,9 @@
         <h2 class="titulo-grande m-0">{{ b.nombres }} {{ b.apellidos }}</h2>
         <p class="texto-secundario m-0 mt-1">
           {{ b.rut }} · {{ b.edad }} años ·
-          <span class="estado" [class.retirado]="b.estado === 'retirado'">{{ b.estado === 'activo' ? 'Activo' : 'Retirado' }}</span>
+          <span class="estado" [class.retirado]="b.estado === 'retirado'">{{
+            b.estado === 'activo' ? 'Activo' : 'Retirado'
+          }}</span>
         </p>
       </div>
     </div>
@@ -59,7 +61,10 @@
 
     <mat-tab label="Apoderados">
       <ng-template matTabContent>
-        <app-apoderados-beneficiario [beneficiarioId]="b.id" [nombre]="b.nombres + ' ' + b.apellidos" />
+        <app-apoderados-beneficiario
+          [beneficiarioId]="b.id"
+          [nombre]="b.nombres + ' ' + b.apellidos"
+        />
       </ng-template>
     </mat-tab>
 
@@ -79,7 +84,9 @@
       <ol class="linea-tiempo mt-3">
         @for (m of historial(); track m.id) {
           <li class="flex gap-3">
-            <div class="icono-movimiento" [class]="m.tipo"><mat-icon>{{ tipos[m.tipo].icono }}</mat-icon></div>
+            <div class="icono-movimiento" [class]="m.tipo">
+              <mat-icon>{{ tipos[m.tipo].icono }}</mat-icon>
+            </div>
             <div class="flex-col">
               <strong>{{ tipos[m.tipo].etiqueta }}</strong>
               <span class="texto-secundario">

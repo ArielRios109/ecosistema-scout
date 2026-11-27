@@ -5,7 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { concatMap, filter, map, Observable, of } from 'rxjs';
-import { confirmar } from '../../../shared/confirmar/confirmar-dialogo';
+import { ConfirmacionService } from '../../../shared/confirmacion/confirmacion';
 import { SolicitudApoderado, VinculoApoderado } from '../miembros.models';
 import { ApoderadosService } from '../miembros.service';
 import { ApoderadoDialogo } from './apoderado-dialogo';
@@ -28,10 +28,19 @@ import { DatosVinculoDialogo, ResultadoVinculo, VinculoDialogo } from './vinculo
       @for (v of vinculos(); track v.apoderadoId) {
         <mat-card appearance="outlined">
           <mat-card-header>
-            <mat-icon matCardAvatar class="avatar">{{ v.esPrincipal ? 'star' : 'person' }}</mat-icon>
+            <mat-icon matCardAvatar class="avatar">{{
+              v.esPrincipal ? 'star' : 'person'
+            }}</mat-icon>
             <mat-card-title>{{ v.nombre }}</mat-card-title>
-            <mat-card-subtitle>{{ v.parentesco }}{{ v.esPrincipal ? ' · Principal' : '' }}</mat-card-subtitle>
-            <button mat-icon-button class="menu" [matMenuTriggerFor]="menu" aria-label="Acciones del vínculo">
+            <mat-card-subtitle
+              >{{ v.parentesco }}{{ v.esPrincipal ? ' · Principal' : '' }}</mat-card-subtitle
+            >
+            <button
+              mat-icon-button
+              class="menu"
+              [matMenuTriggerFor]="menu"
+              aria-label="Acciones del vínculo"
+            >
               <mat-icon>more_vert</mat-icon>
             </button>
             <mat-menu #menu="matMenu">
@@ -46,13 +55,21 @@ import { DatosVinculoDialogo, ResultadoVinculo, VinculoDialogo } from './vinculo
             </mat-menu>
           </mat-card-header>
           <mat-card-content class="flex-col gap-1 mt-2">
-            <span class="flex items-center gap-1"><mat-icon class="icono">badge</mat-icon>{{ v.rut }}</span>
-            <span class="flex items-center gap-1"><mat-icon class="icono">mail</mat-icon>{{ v.email }}</span>
+            <span class="flex items-center gap-1"
+              ><mat-icon class="icono">badge</mat-icon>{{ v.rut }}</span
+            >
+            <span class="flex items-center gap-1"
+              ><mat-icon class="icono">mail</mat-icon>{{ v.email }}</span
+            >
             @if (v.telefono) {
-              <span class="flex items-center gap-1"><mat-icon class="icono">call</mat-icon>{{ v.telefono }}</span>
+              <span class="flex items-center gap-1"
+                ><mat-icon class="icono">call</mat-icon>{{ v.telefono }}</span
+              >
             }
             <span class="flex items-center gap-1 texto-secundario">
-              <mat-icon class="icono">{{ v.tieneCuenta ? 'verified_user' : 'no_accounts' }}</mat-icon>
+              <mat-icon class="icono">{{
+                v.tieneCuenta ? 'verified_user' : 'no_accounts'
+              }}</mat-icon>
               {{ v.tieneCuenta ? 'Con cuenta del Portal' : 'Sin cuenta del Portal' }}
             </span>
           </mat-card-content>
@@ -97,10 +114,13 @@ export class ApoderadosBeneficiario {
 
   private readonly servicio = inject(ApoderadosService);
   private readonly dialogo = inject(MatDialog);
+  private readonly confirmacion = inject(ConfirmacionService);
   protected readonly vinculos = signal<VinculoApoderado[]>([]);
 
   constructor() {
-    effect(() => this.servicio.vinculos(this.beneficiarioId()).subscribe((v) => this.vinculos.set(v)));
+    effect(() =>
+      this.servicio.vinculos(this.beneficiarioId()).subscribe((v) => this.vinculos.set(v)),
+    );
   }
 
   protected vincular(): void {
@@ -118,29 +138,35 @@ export class ApoderadosBeneficiario {
     this.abrir({ nombreBeneficiario: this.nombre(), vinculo })
       .pipe(
         concatMap(({ parentesco, esPrincipal }) =>
-          this.servicio.editarVinculo(this.beneficiarioId(), vinculo.apoderadoId, { parentesco, esPrincipal }),
+          this.servicio.editarVinculo(this.beneficiarioId(), vinculo.apoderadoId, {
+            parentesco,
+            esPrincipal,
+          }),
         ),
       )
       .subscribe((v) => this.vinculos.set(v));
   }
 
   protected desvincular(vinculo: VinculoApoderado): void {
-    confirmar(this.dialogo, {
-      titulo: 'Desvincular apoderado',
-      mensaje: `${vinculo.nombre} dejará de ser apoderado de ${this.nombre()}. Sus datos se conservan.`,
-      confirmar: 'Desvincular',
-      peligroso: true,
-    })
-      .pipe(
-        filter(Boolean),
-        concatMap(() => this.servicio.desvincular(this.beneficiarioId(), vinculo.apoderadoId)),
+    this.confirmacion
+      .ejecutar(
+        {
+          titulo: 'Desvincular apoderado',
+          mensaje: `${vinculo.nombre} dejará de ser apoderado de ${this.nombre()}. Sus datos se conservan.`,
+          confirmar: 'Desvincular',
+          peligroso: true,
+        },
+        () => this.servicio.desvincular(this.beneficiarioId(), vinculo.apoderadoId),
       )
       .subscribe((v) => this.vinculos.set(v));
   }
 
   private abrir(datos: DatosVinculoDialogo): Observable<ResultadoVinculo> {
     return this.dialogo
-      .open<VinculoDialogo, DatosVinculoDialogo, ResultadoVinculo>(VinculoDialogo, { data: datos, width: '480px', maxWidth: '95vw' })
+      .open<VinculoDialogo, DatosVinculoDialogo, ResultadoVinculo>(VinculoDialogo, {
+        data: datos,
+        width: '480px',
+      })
       .afterClosed()
       .pipe(filter((r): r is ResultadoVinculo => !!r));
   }
@@ -149,7 +175,9 @@ export class ApoderadosBeneficiario {
   private apoderadoDe(resultado: ResultadoVinculo): Observable<number> {
     if (resultado.apoderadoId !== 'nuevo') return of(resultado.apoderadoId);
     return this.dialogo
-      .open<ApoderadoDialogo, undefined, SolicitudApoderado>(ApoderadoDialogo, { width: '520px', maxWidth: '95vw' })
+      .open<ApoderadoDialogo, undefined, SolicitudApoderado>(ApoderadoDialogo, {
+        width: '520px',
+      })
       .afterClosed()
       .pipe(
         filter((datos): datos is SolicitudApoderado => !!datos),

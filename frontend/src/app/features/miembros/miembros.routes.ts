@@ -15,7 +15,8 @@ export const MIEMBROS_ROUTES: Routes = [
       },
       {
         path: 'beneficiarios/:id',
-        loadComponent: () => import('./beneficiarios/beneficiario-detalle').then((m) => m.BeneficiarioDetalle),
+        loadComponent: () =>
+          import('./beneficiarios/beneficiario-detalle').then((m) => m.BeneficiarioDetalle),
         title: 'Ficha del beneficiario · Talí',
       },
       {

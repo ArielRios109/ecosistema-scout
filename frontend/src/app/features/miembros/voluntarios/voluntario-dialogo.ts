@@ -7,15 +7,28 @@ import { MatInputModule } from '@angular/material/input';
 import { validarRut } from '../../../shared/rut/rut';
 import { RutInput } from '../../../shared/rut/rut-input';
 import { SolicitudVoluntario, VoluntarioResumen } from '../miembros.models';
+import { protegerDialogo } from '../../../shared/confirmacion/confirmacion';
 
 /** Formulario para registrar o editar los datos de un voluntario adulto. */
 @Component({
   selector: 'app-voluntario-dialogo',
-  imports: [ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatInputModule, RutInput],
+  imports: [
+    ReactiveFormsModule,
+    MatDialogModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    RutInput,
+  ],
   template: `
     <h2 mat-dialog-title>{{ voluntario ? 'Editar voluntario' : 'Nuevo voluntario' }}</h2>
     <mat-dialog-content>
-      <form [formGroup]="formulario" id="form-voluntario" class="flex-col gap-1" (ngSubmit)="guardar()">
+      <form
+        [formGroup]="formulario"
+        id="form-voluntario"
+        class="flex-col gap-1"
+        (ngSubmit)="guardar()"
+      >
         <mat-form-field appearance="outline">
           <mat-label>RUT</mat-label>
           <input matInput formControlName="rut" appRut placeholder="12.345.678-5" maxlength="12" />
@@ -44,13 +57,21 @@ import { SolicitudVoluntario, VoluntarioResumen } from '../miembros.models';
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Teléfono (opcional)</mat-label>
-          <input matInput type="tel" formControlName="telefono" maxlength="20" placeholder="+56 9 1234 5678" />
+          <input
+            matInput
+            type="tel"
+            formControlName="telefono"
+            maxlength="20"
+            placeholder="+56 9 1234 5678"
+          />
         </mat-form-field>
       </form>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close type="button">Cancelar</button>
-      <button mat-flat-button type="submit" form="form-voluntario">{{ voluntario ? 'Guardar' : 'Registrar' }}</button>
+      <button mat-button type="button" (click)="cancelar()">Cancelar</button>
+      <button mat-flat-button type="submit" form="form-voluntario">
+        {{ voluntario ? 'Guardar' : 'Registrar' }}
+      </button>
     </mat-dialog-actions>
   `,
   styles: `
@@ -73,6 +94,7 @@ export class VoluntarioDialogo {
     email: [this.voluntario?.email ?? '', Validators.email],
     telefono: [this.voluntario?.telefono ?? ''],
   });
+  protected readonly cancelar = protegerDialogo(this.ref, this.formulario);
 
   protected guardar(): void {
     if (this.formulario.invalid) {

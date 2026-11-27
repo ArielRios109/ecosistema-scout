@@ -6,15 +6,45 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { FichaMedica, GRUPOS_SANGUINEOS, PREVISIONES, SolicitudFichaMedica } from '../miembros.models';
+import {
+  FichaMedica,
+  GRUPOS_SANGUINEOS,
+  PREVISIONES,
+  SolicitudFichaMedica,
+} from '../miembros.models';
 import { FichaMedicaService } from '../miembros.service';
 
 /** Campos de texto largo de la ficha, en el orden en que se muestran. */
-const CAMPOS: { clave: keyof SolicitudFichaMedica; etiqueta: string; icono: string; ayuda: string }[] = [
-  { clave: 'alergias', etiqueta: 'Alergias', icono: 'coronavirus', ayuda: 'Medicamentos, alimentos, picaduras…' },
-  { clave: 'enfermedades', etiqueta: 'Enfermedades o condiciones', icono: 'medical_information', ayuda: 'Asma, diabetes, epilepsia…' },
-  { clave: 'medicamentos', etiqueta: 'Medicamentos', icono: 'medication', ayuda: 'Nombre, dosis y horario.' },
-  { clave: 'restriccionesAlimentarias', etiqueta: 'Restricciones alimentarias', icono: 'no_food', ayuda: 'Celíaco, vegetariano…' },
+const CAMPOS: {
+  clave: keyof SolicitudFichaMedica;
+  etiqueta: string;
+  icono: string;
+  ayuda: string;
+}[] = [
+  {
+    clave: 'alergias',
+    etiqueta: 'Alergias',
+    icono: 'coronavirus',
+    ayuda: 'Medicamentos, alimentos, picaduras…',
+  },
+  {
+    clave: 'enfermedades',
+    etiqueta: 'Enfermedades o condiciones',
+    icono: 'medical_information',
+    ayuda: 'Asma, diabetes, epilepsia…',
+  },
+  {
+    clave: 'medicamentos',
+    etiqueta: 'Medicamentos',
+    icono: 'medication',
+    ayuda: 'Nombre, dosis y horario.',
+  },
+  {
+    clave: 'restriccionesAlimentarias',
+    etiqueta: 'Restricciones alimentarias',
+    icono: 'no_food',
+    ayuda: 'Celíaco, vegetariano…',
+  },
   {
     clave: 'necesidadesEmocionales',
     etiqueta: 'Necesidades emocionales',
@@ -26,14 +56,23 @@ const CAMPOS: { clave: keyof SolicitudFichaMedica; etiqueta: string; icono: stri
 /** Pestaña "Ficha médica": se ve en modo lectura y se edita en el mismo lugar. Los datos viajan y se guardan cifrados. */
 @Component({
   selector: 'app-ficha-medica-beneficiario',
-  imports: [DatePipe, ReactiveFormsModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule, MatSelectModule],
+  imports: [
+    DatePipe,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatIconModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+  ],
   template: `
     @if (ficha(); as f) {
       <div class="flex items-center justify-between gap-2 mt-3 mb-3 encabezado">
         <p class="flex items-center gap-1 texto-secundario m-0">
           <mat-icon class="icono">lock</mat-icon>
           @if (f.existe) {
-            Actualizada el {{ f.actualizadaEl | date: 'dd-MM-yyyy HH:mm' }}{{ f.actualizadaPor ? ' por ' + f.actualizadaPor : '' }}.
+            Actualizada el {{ f.actualizadaEl | date: 'dd-MM-yyyy HH:mm'
+            }}{{ f.actualizadaPor ? ' por ' + f.actualizadaPor : '' }}.
           } @else {
             Aún no tiene ficha médica registrada.
           }
@@ -72,7 +111,12 @@ const CAMPOS: { clave: keyof SolicitudFichaMedica; etiqueta: string; icono: stri
           @for (campo of campos; track campo.clave) {
             <mat-form-field appearance="outline" class="ancho-completo">
               <mat-label>{{ campo.etiqueta }}</mat-label>
-              <textarea matInput [formControlName]="campo.clave" rows="2" maxlength="1000"></textarea>
+              <textarea
+                matInput
+                [formControlName]="campo.clave"
+                rows="2"
+                maxlength="1000"
+              ></textarea>
               <mat-hint>{{ campo.ayuda }}</mat-hint>
             </mat-form-field>
           }
@@ -93,7 +137,9 @@ const CAMPOS: { clave: keyof SolicitudFichaMedica; etiqueta: string; icono: stri
           </div>
           @for (campo of campos; track campo.clave) {
             <div class="completo">
-              <dt class="flex items-center gap-1"><mat-icon class="icono">{{ campo.icono }}</mat-icon>{{ campo.etiqueta }}</dt>
+              <dt class="flex items-center gap-1">
+                <mat-icon class="icono">{{ campo.icono }}</mat-icon>{{ campo.etiqueta }}
+              </dt>
               <dd>{{ f[campo.clave] ?? 'Sin información' }}</dd>
             </div>
           }

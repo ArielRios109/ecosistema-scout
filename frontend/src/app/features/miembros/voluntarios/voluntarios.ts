@@ -15,7 +15,7 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { concatMap, debounceTime, filter, map, Subject } from 'rxjs';
-import { confirmar } from '../../../shared/confirmar/confirmar-dialogo';
+import { ConfirmacionService } from '../../../shared/confirmacion/confirmacion';
 import { SolicitudVoluntario, Unidad, VoluntarioResumen } from '../miembros.models';
 import { UnidadesService, VoluntariosService } from '../miembros.service';
 import { CargosDialogo } from './cargos-dialogo';
@@ -45,6 +45,7 @@ export class Voluntarios implements OnInit {
   private readonly servicio = inject(VoluntariosService);
   private readonly unidadesServicio = inject(UnidadesService);
   private readonly dialogo = inject(MatDialog);
+  private readonly confirmacion = inject(ConfirmacionService);
 
   protected readonly voluntarios = signal<VoluntarioResumen[]>([]);
   protected readonly total = signal(0);
@@ -57,7 +58,9 @@ export class Voluntarios implements OnInit {
   private readonly busqueda$ = new Subject<string>();
 
   protected readonly esMovil = toSignal(
-    inject(BreakpointObserver).observe([Breakpoints.XSmall]).pipe(map((r) => r.matches)),
+    inject(BreakpointObserver)
+      .observe([Breakpoints.XSmall])
+      .pipe(map((r) => r.matches)),
     { initialValue: false },
   );
   protected readonly columnas = ['nombre', 'rut', 'contacto', 'cargos', 'acciones'];
@@ -106,15 +109,15 @@ export class Voluntarios implements OnInit {
   }
 
   protected eliminar(voluntario: VoluntarioResumen): void {
-    confirmar(this.dialogo, {
-      titulo: 'Eliminar voluntario',
-      mensaje: `Se eliminarán los datos de ${voluntario.nombres} ${voluntario.apellidos}. Solo es posible si nunca tuvo cargos.`,
-      confirmar: 'Eliminar',
-      peligroso: true,
-    })
-      .pipe(
-        filter(Boolean),
-        concatMap(() => this.servicio.eliminar(voluntario.id)),
+    this.confirmacion
+      .ejecutar(
+        {
+          tipo: 'eliminar',
+          titulo: 'Eliminar voluntario',
+          mensaje: `Se eliminarán los datos de ${voluntario.nombres} ${voluntario.apellidos}. Solo es posible si nunca tuvo cargos.`,
+          confirmar: 'Eliminar',
+        },
+        () => this.servicio.eliminar(voluntario.id),
       )
       .subscribe(() => this.cargar());
   }
@@ -122,7 +125,7 @@ export class Voluntarios implements OnInit {
   private abrirCargos(id: number): void {
     this.servicio.obtener(id).subscribe((detalle) =>
       this.dialogo
-        .open(CargosDialogo, { data: detalle, width: '600px', maxWidth: '95vw' })
+        .open(CargosDialogo, { data: detalle, width: '600px' })
         .afterClosed()
         .subscribe(() => this.cargar()),
     );
@@ -130,18 +133,26 @@ export class Voluntarios implements OnInit {
 
   private formulario(voluntario?: VoluntarioResumen) {
     return this.dialogo
-      .open<VoluntarioDialogo, VoluntarioResumen | undefined, SolicitudVoluntario>(VoluntarioDialogo, {
-        data: voluntario,
-        width: '520px',
-        maxWidth: '95vw',
-      })
+      .open<VoluntarioDialogo, VoluntarioResumen | undefined, SolicitudVoluntario>(
+        VoluntarioDialogo,
+        {
+          data: voluntario,
+          width: '520px',
+        },
+      )
       .afterClosed()
       .pipe(filter((datos): datos is SolicitudVoluntario => !!datos));
   }
 
   private cargar(): void {
     this.servicio
-      .listar({ pagina: this.pagina, tamano: this.tamano, buscar: this.buscar, unidadId: this.unidadId, conCargo: this.conCargo })
+      .listar({
+        pagina: this.pagina,
+        tamano: this.tamano,
+        buscar: this.buscar,
+        unidadId: this.unidadId,
+        conCargo: this.conCargo,
+      })
       .subscribe((pagina) => {
         this.voluntarios.set(pagina.elementos);
         this.total.set(pagina.total);

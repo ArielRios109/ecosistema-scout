@@ -33,7 +33,9 @@ export class Auth {
 
   readonly usuario = computed(() => this.sesion()?.usuario ?? null);
   readonly autenticado = computed(() => this.sesion() !== null);
-  readonly debeCambiarPassword = computed(() => this.sesion()?.usuario.debeCambiarPassword ?? false);
+  readonly debeCambiarPassword = computed(
+    () => this.sesion()?.usuario.debeCambiarPassword ?? false,
+  );
 
   get token(): string | null {
     return this.sesion()?.token ?? null;
@@ -50,7 +52,11 @@ export class Auth {
   cambiarPassword(passwordActual: string, passwordNueva: string): Observable<RespuestaLogin> {
     const context = new HttpContext().set(MOSTRAR_MENSAJE_EXITO, true);
     return this.http
-      .post<RespuestaLogin>('/api/auth/cambiar-password', { passwordActual, passwordNueva }, { context })
+      .post<RespuestaLogin>(
+        '/api/auth/cambiar-password',
+        { passwordActual, passwordNueva },
+        { context },
+      )
       .pipe(tap((respuesta) => this.guardar(respuesta)));
   }
 
@@ -65,7 +71,11 @@ export class Auth {
   }
 
   private guardar(respuesta: RespuestaLogin): void {
-    const sesion: SesionGuardada = { token: respuesta.token, expira: respuesta.expira, usuario: respuesta.usuario };
+    const sesion: SesionGuardada = {
+      token: respuesta.token,
+      expira: respuesta.expira,
+      usuario: respuesta.usuario,
+    };
     localStorage.setItem(CLAVE_SESION, JSON.stringify(sesion));
     this.sesion.set(sesion);
   }

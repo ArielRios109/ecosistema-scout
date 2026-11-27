@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { aFechaIso, proveerFechas } from '../../../core/i18n/fechas';
 import { BeneficiarioResumen, SolicitudMovimiento, Unidad } from '../miembros.models';
+import { protegerDialogo } from '../../../shared/confirmacion/confirmacion';
 
 export interface DatosMovimientoDialogo {
   tipo: 'retiro' | 'reingreso';
@@ -35,12 +36,27 @@ export interface DatosMovimientoDialogo {
     <mat-dialog-content>
       <p class="m-0 mb-3">
         {{ datos.beneficiario.nombres }} {{ datos.beneficiario.apellidos }}
-        {{ esRetiro ? 'quedará como retirado. Sus datos e historial se conservan.' : 'volverá a estar activo en el grupo.' }}
+        {{
+          esRetiro
+            ? 'quedará como retirado. Sus datos e historial se conservan.'
+            : 'volverá a estar activo en el grupo.'
+        }}
       </p>
-      <form [formGroup]="formulario" id="form-movimiento" class="flex-col gap-1" (ngSubmit)="guardar()">
+      <form
+        [formGroup]="formulario"
+        id="form-movimiento"
+        class="flex-col gap-1"
+        (ngSubmit)="guardar()"
+      >
         <mat-form-field appearance="outline">
           <mat-label>{{ esRetiro ? 'Fecha de retiro' : 'Fecha de reingreso' }}</mat-label>
-          <input matInput formControlName="fecha" [matDatepicker]="picker" [max]="hoy" placeholder="dd-mm-aaaa" />
+          <input
+            matInput
+            formControlName="fecha"
+            [matDatepicker]="picker"
+            [max]="hoy"
+            placeholder="dd-mm-aaaa"
+          />
           <mat-datepicker-toggle matIconSuffix [for]="picker" />
           <mat-datepicker #picker />
           <mat-error>Ingresa una fecha válida (dd-mm-aaaa).</mat-error>
@@ -74,8 +90,10 @@ export interface DatosMovimientoDialogo {
       </form>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close type="button">Cancelar</button>
-      <button mat-flat-button type="submit" form="form-movimiento">{{ esRetiro ? 'Retirar' : 'Reingresar' }}</button>
+      <button mat-button type="button" (click)="cancelar()">Cancelar</button>
+      <button mat-flat-button type="submit" form="form-movimiento">
+        {{ esRetiro ? 'Retirar' : 'Reingresar' }}
+      </button>
     </mat-dialog-actions>
   `,
 })
@@ -85,7 +103,9 @@ export class MovimientoDialogo {
   protected readonly esRetiro = this.datos.tipo === 'retiro';
   protected readonly hoy = new Date();
 
-  private readonly unidadActualActiva = this.datos.unidades?.some((u) => u.id === this.datos.beneficiario.unidadId);
+  private readonly unidadActualActiva = this.datos.unidades?.some(
+    (u) => u.id === this.datos.beneficiario.unidadId,
+  );
 
   protected readonly formulario = inject(FormBuilder).group({
     fecha: [new Date() as Date | null, Validators.required],
@@ -96,17 +116,22 @@ export class MovimientoDialogo {
     patrullaId: [this.unidadActualActiva ? this.datos.beneficiario.patrullaId : null],
     detalle: [''],
   });
+  protected readonly cancelar = protegerDialogo(this.ref, this.formulario);
 
   private readonly unidadSeleccionada = toSignal(this.formulario.controls.unidadId.valueChanges, {
     initialValue: this.formulario.controls.unidadId.value,
   });
 
   protected readonly patrullas = computed(() =>
-    (this.datos.unidades?.find((u) => u.id === this.unidadSeleccionada())?.patrullas ?? []).filter((p) => p.activa),
+    (this.datos.unidades?.find((u) => u.id === this.unidadSeleccionada())?.patrullas ?? []).filter(
+      (p) => p.activa,
+    ),
   );
 
   constructor() {
-    this.formulario.controls.unidadId.valueChanges.subscribe(() => this.formulario.controls.patrullaId.setValue(null));
+    this.formulario.controls.unidadId.valueChanges.subscribe(() =>
+      this.formulario.controls.patrullaId.setValue(null),
+    );
   }
 
   protected guardar(): void {

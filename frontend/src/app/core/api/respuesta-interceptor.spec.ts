@@ -24,7 +24,9 @@ describe('respuestaInterceptor', () => {
     let recibido: unknown;
     http.get('/api/prueba').subscribe((datos) => (recibido = datos));
 
-    servidor.expectOne('/api/prueba').flush({ exito: true, mensaje: null, datos: { nombre: 'Talí' }, errores: null });
+    servidor
+      .expectOne('/api/prueba')
+      .flush({ exito: true, mensaje: null, datos: { nombre: 'Talí' }, errores: null });
 
     expect(recibido).toEqual({ nombre: 'Talí' });
   });

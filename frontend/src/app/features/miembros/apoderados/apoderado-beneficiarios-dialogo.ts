@@ -18,11 +18,16 @@ import { ApoderadoDetalle } from '../miembros.models';
       } @else {
         <mat-nav-list>
           @for (b of datos.beneficiarios; track b.beneficiarioId) {
-            <a mat-list-item [routerLink]="['/miembros/beneficiarios', b.beneficiarioId]" mat-dialog-close>
+            <a
+              mat-list-item
+              [routerLink]="['/miembros/beneficiarios', b.beneficiarioId]"
+              mat-dialog-close
+            >
               <mat-icon matListItemIcon>{{ b.esPrincipal ? 'star' : 'person' }}</mat-icon>
               <span matListItemTitle>{{ b.nombre }}</span>
               <span matListItemLine>
-                {{ b.parentesco }}{{ b.esPrincipal ? ' · Principal' : '' }} · {{ b.unidad }}{{ b.estado === 'retirado' ? ' · Retirado' : '' }}
+                {{ b.parentesco }}{{ b.esPrincipal ? ' · Principal' : '' }} · {{ b.unidad
+                }}{{ b.estado === 'retirado' ? ' · Retirado' : '' }}
               </span>
             </a>
           }

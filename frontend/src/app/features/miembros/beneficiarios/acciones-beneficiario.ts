@@ -1,7 +1,13 @@
 import { inject, Injectable } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { concatMap, filter, Observable, of } from 'rxjs';
-import { BeneficiarioDetalle, BeneficiarioResumen, SolicitudBeneficiario, SolicitudMovimiento, Unidad } from '../miembros.models';
+import {
+  BeneficiarioDetalle,
+  BeneficiarioResumen,
+  SolicitudBeneficiario,
+  SolicitudMovimiento,
+  Unidad,
+} from '../miembros.models';
 import { BeneficiariosService, UnidadesService } from '../miembros.service';
 import { BeneficiarioDialogo, DatosBeneficiarioDialogo } from './beneficiario-dialogo';
 import { DatosMovimientoDialogo, MovimientoDialogo } from './movimiento-dialogo';
@@ -21,15 +27,24 @@ export class AccionesBeneficiario {
         if (beneficiario && !unidades.some((u) => u.id === beneficiario.unidadId)) {
           unidades = [
             ...unidades,
-            { id: beneficiario.unidadId, nombre: beneficiario.unidad, rama: beneficiario.rama, activa: false, beneficiarios: 0, patrullas: [] },
+            {
+              id: beneficiario.unidadId,
+              nombre: beneficiario.unidad,
+              rama: beneficiario.rama,
+              activa: false,
+              beneficiarios: 0,
+              patrullas: [],
+            },
           ];
         }
         return this.dialogo
-          .open<BeneficiarioDialogo, DatosBeneficiarioDialogo, SolicitudBeneficiario>(BeneficiarioDialogo, {
-            data: { beneficiario, unidades },
-            width: '640px',
-            maxWidth: '95vw',
-          })
+          .open<BeneficiarioDialogo, DatosBeneficiarioDialogo, SolicitudBeneficiario>(
+            BeneficiarioDialogo,
+            {
+              data: { beneficiario, unidades },
+              width: '640px',
+            },
+          )
           .afterClosed();
       }),
     );
@@ -47,20 +62,23 @@ export class AccionesBeneficiario {
   /** Retira a un beneficiario activo o reingresa a uno retirado. */
   cambiarEstado(beneficiario: BeneficiarioResumen): Observable<BeneficiarioDetalle> {
     const retiro = beneficiario.estado === 'activo';
-    const unidades$: Observable<Unidad[] | undefined> = retiro ? of(undefined) : this.unidades.listar();
+    const unidades$: Observable<Unidad[] | undefined> = retiro
+      ? of(undefined)
+      : this.unidades.listar();
     return unidades$.pipe(
       concatMap((unidades) =>
         this.dialogo
           .open<MovimientoDialogo, DatosMovimientoDialogo, SolicitudMovimiento>(MovimientoDialogo, {
             data: { tipo: retiro ? 'retiro' : 'reingreso', beneficiario, unidades },
             width: '460px',
-            maxWidth: '95vw',
           })
           .afterClosed(),
       ),
       filter((datos): datos is SolicitudMovimiento => !!datos),
       concatMap((datos) =>
-        retiro ? this.servicio.retirar(beneficiario.id, datos) : this.servicio.reingresar(beneficiario.id, datos),
+        retiro
+          ? this.servicio.retirar(beneficiario.id, datos)
+          : this.servicio.reingresar(beneficiario.id, datos),
       ),
     );
   }

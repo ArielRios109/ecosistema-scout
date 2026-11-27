@@ -15,7 +15,14 @@ const UNIDADES: Unidad[] = [
       { id: 11, unidadId: 1, nombre: 'Antigua', activa: false, beneficiarios: 0 },
     ],
   },
-  { id: 2, nombre: 'Manada Seeonee', rama: 'lobatos', activa: true, beneficiarios: 0, patrullas: [] },
+  {
+    id: 2,
+    nombre: 'Manada Seeonee',
+    rama: 'lobatos',
+    activa: true,
+    beneficiarios: 0,
+    patrullas: [],
+  },
 ];
 
 function crear(datos: DatosBeneficiarioDialogo = { unidades: UNIDADES }) {
@@ -33,7 +40,10 @@ function crear(datos: DatosBeneficiarioDialogo = { unidades: UNIDADES }) {
   const componente = fixture.componentInstance as unknown as {
     formulario: {
       patchValue: (v: object) => void;
-      controls: Record<string, { setValue: (v: unknown) => void; value: unknown; disabled: boolean }>;
+      controls: Record<
+        string,
+        { setValue: (v: unknown) => void; value: unknown; disabled: boolean }
+      >;
     };
     patrullas: () => { id: number }[];
     guardar: () => void;

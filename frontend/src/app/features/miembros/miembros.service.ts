@@ -51,11 +51,19 @@ export class UnidadesService {
   }
 
   cambiarEstado(id: number, activa: boolean): Observable<Unidad> {
-    return this.http.post<Unidad>(`${BASE}/unidades/${id}/${activa ? 'activar' : 'desactivar'}`, null, conMensaje());
+    return this.http.post<Unidad>(
+      `${BASE}/unidades/${id}/${activa ? 'activar' : 'desactivar'}`,
+      null,
+      conMensaje(),
+    );
   }
 
   crearPatrulla(unidadId: number, nombre: string): Observable<Patrulla> {
-    return this.http.post<Patrulla>(`${BASE}/unidades/${unidadId}/patrullas`, { nombre }, conMensaje());
+    return this.http.post<Patrulla>(
+      `${BASE}/unidades/${unidadId}/patrullas`,
+      { nombre },
+      conMensaje(),
+    );
   }
 
   editarPatrulla(id: number, nombre: string): Observable<Patrulla> {
@@ -63,7 +71,11 @@ export class UnidadesService {
   }
 
   cambiarEstadoPatrulla(id: number, activa: boolean): Observable<Patrulla> {
-    return this.http.post<Patrulla>(`${BASE}/patrullas/${id}/${activa ? 'activar' : 'desactivar'}`, null, conMensaje());
+    return this.http.post<Patrulla>(
+      `${BASE}/patrullas/${id}/${activa ? 'activar' : 'desactivar'}`,
+      null,
+      conMensaje(),
+    );
   }
 }
 
@@ -100,7 +112,11 @@ export class BeneficiariosService {
   }
 
   reingresar(id: number, datos: SolicitudMovimiento): Observable<BeneficiarioDetalle> {
-    return this.http.post<BeneficiarioDetalle>(`${this.base}/${id}/reingresar`, datos, conMensaje());
+    return this.http.post<BeneficiarioDetalle>(
+      `${this.base}/${id}/reingresar`,
+      datos,
+      conMensaje(),
+    );
   }
 
   historial(id: number): Observable<MovimientoHistorial[]> {
@@ -116,7 +132,10 @@ export class ApoderadosService {
 
   listar(filtro: ConsultaPaginada, sinSpinner = false): Observable<Pagina<ApoderadoResumen>> {
     const context = sinSpinner ? new HttpContext().set(SIN_SPINNER, true) : undefined;
-    return this.http.get<Pagina<ApoderadoResumen>>(this.base, { params: aParametros(filtro), context });
+    return this.http.get<Pagina<ApoderadoResumen>>(this.base, {
+      params: aParametros(filtro),
+      context,
+    });
   }
 
   obtener(id: number): Observable<ApoderadoDetalle> {
@@ -143,16 +162,34 @@ export class ApoderadosService {
     return this.http.get<VinculoApoderado[]>(`${BASE}/beneficiarios/${beneficiarioId}/apoderados`);
   }
 
-  vincular(beneficiarioId: number, datos: { apoderadoId: number; parentesco: string; esPrincipal: boolean }) {
-    return this.http.post<VinculoApoderado[]>(`${BASE}/beneficiarios/${beneficiarioId}/apoderados`, datos, conMensaje());
+  vincular(
+    beneficiarioId: number,
+    datos: { apoderadoId: number; parentesco: string; esPrincipal: boolean },
+  ) {
+    return this.http.post<VinculoApoderado[]>(
+      `${BASE}/beneficiarios/${beneficiarioId}/apoderados`,
+      datos,
+      conMensaje(),
+    );
   }
 
-  editarVinculo(beneficiarioId: number, apoderadoId: number, datos: { parentesco: string; esPrincipal: boolean }) {
-    return this.http.put<VinculoApoderado[]>(`${BASE}/beneficiarios/${beneficiarioId}/apoderados/${apoderadoId}`, datos, conMensaje());
+  editarVinculo(
+    beneficiarioId: number,
+    apoderadoId: number,
+    datos: { parentesco: string; esPrincipal: boolean },
+  ) {
+    return this.http.put<VinculoApoderado[]>(
+      `${BASE}/beneficiarios/${beneficiarioId}/apoderados/${apoderadoId}`,
+      datos,
+      conMensaje(),
+    );
   }
 
   desvincular(beneficiarioId: number, apoderadoId: number) {
-    return this.http.delete<VinculoApoderado[]>(`${BASE}/beneficiarios/${beneficiarioId}/apoderados/${apoderadoId}`, conMensaje());
+    return this.http.delete<VinculoApoderado[]>(
+      `${BASE}/beneficiarios/${beneficiarioId}/apoderados/${apoderadoId}`,
+      conMensaje(),
+    );
   }
 }
 
@@ -176,12 +213,23 @@ export class ContactosService {
     return this.http.post<ContactoEmergencia[]>(this.ruta(beneficiarioId), datos, conMensaje());
   }
 
-  editar(beneficiarioId: number, id: number, datos: SolicitudContacto): Observable<ContactoEmergencia[]> {
-    return this.http.put<ContactoEmergencia[]>(`${this.ruta(beneficiarioId)}/${id}`, datos, conMensaje());
+  editar(
+    beneficiarioId: number,
+    id: number,
+    datos: SolicitudContacto,
+  ): Observable<ContactoEmergencia[]> {
+    return this.http.put<ContactoEmergencia[]>(
+      `${this.ruta(beneficiarioId)}/${id}`,
+      datos,
+      conMensaje(),
+    );
   }
 
   eliminar(beneficiarioId: number, id: number): Observable<ContactoEmergencia[]> {
-    return this.http.delete<ContactoEmergencia[]>(`${this.ruta(beneficiarioId)}/${id}`, conMensaje());
+    return this.http.delete<ContactoEmergencia[]>(
+      `${this.ruta(beneficiarioId)}/${id}`,
+      conMensaje(),
+    );
   }
 }
 
@@ -235,11 +283,22 @@ export class VoluntariosService {
     return this.http.post<VoluntarioDetalle>(`${this.base}/${id}/cargos`, datos, conMensaje());
   }
 
-  terminarCargo(id: number, cargoId: number, fechaTermino: string | null): Observable<VoluntarioDetalle> {
-    return this.http.post<VoluntarioDetalle>(`${this.base}/${id}/cargos/${cargoId}/terminar`, { fechaTermino }, conMensaje());
+  terminarCargo(
+    id: number,
+    cargoId: number,
+    fechaTermino: string | null,
+  ): Observable<VoluntarioDetalle> {
+    return this.http.post<VoluntarioDetalle>(
+      `${this.base}/${id}/cargos/${cargoId}/terminar`,
+      { fechaTermino },
+      conMensaje(),
+    );
   }
 
   eliminarCargo(id: number, cargoId: number): Observable<VoluntarioDetalle> {
-    return this.http.delete<VoluntarioDetalle>(`${this.base}/${id}/cargos/${cargoId}`, conMensaje());
+    return this.http.delete<VoluntarioDetalle>(
+      `${this.base}/${id}/cargos/${cargoId}`,
+      conMensaje(),
+    );
   }
 }

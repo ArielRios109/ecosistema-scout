@@ -1,5 +1,7 @@
 <div class="flex items-center justify-between gap-3 mb-3 barra-acciones">
-  <mat-slide-toggle [(ngModel)]="incluirInactivas" (change)="cargar()">Mostrar inactivas</mat-slide-toggle>
+  <mat-slide-toggle [(ngModel)]="incluirInactivas" (change)="cargar()"
+    >Mostrar inactivas</mat-slide-toggle
+  >
   @if (esAdmin) {
     <button mat-flat-button (click)="nuevaUnidad()">
       <mat-icon>add</mat-icon>
@@ -23,7 +25,12 @@
           {{ etiquetaRama(unidad.rama) }}{{ unidad.activa ? '' : ' · Inactiva' }}
         </mat-card-subtitle>
         @if (esAdmin) {
-          <button mat-icon-button class="menu-unidad" [matMenuTriggerFor]="menu" aria-label="Acciones de la unidad">
+          <button
+            mat-icon-button
+            class="menu-unidad"
+            [matMenuTriggerFor]="menu"
+            aria-label="Acciones de la unidad"
+          >
             <mat-icon>more_vert</mat-icon>
           </button>
           <mat-menu #menu="matMenu">
@@ -42,7 +49,10 @@
       <mat-card-content>
         <p class="flex items-center gap-1 texto-secundario mt-2">
           <mat-icon class="icono-chico">groups</mat-icon>
-          {{ unidad.beneficiarios }} beneficiario{{ unidad.beneficiarios === 1 ? '' : 's' }} activo{{ unidad.beneficiarios === 1 ? '' : 's' }}
+          {{ unidad.beneficiarios }} beneficiario{{
+            unidad.beneficiarios === 1 ? '' : 's'
+          }}
+          activo{{ unidad.beneficiarios === 1 ? '' : 's' }}
         </p>
 
         <h3 class="subtitulo m-0 mt-3 mb-2">Patrullas</h3>

@@ -45,7 +45,11 @@ export class UsuariosService {
     return this.http.get<RolInfo[]>('/api/base/roles');
   }
 
-  crear(datos: { nombre: string; email: string; roles: string[] }): Observable<UsuarioConPasswordTemporal> {
+  crear(datos: {
+    nombre: string;
+    email: string;
+    roles: string[];
+  }): Observable<UsuarioConPasswordTemporal> {
     return this.http.post<UsuarioConPasswordTemporal>(BASE, datos, conMensaje());
   }
 
@@ -58,10 +62,18 @@ export class UsuariosService {
   }
 
   cambiarEstado(id: number, activo: boolean): Observable<UsuarioResumen> {
-    return this.http.post<UsuarioResumen>(`${BASE}/${id}/${activo ? 'activar' : 'desactivar'}`, null, conMensaje());
+    return this.http.post<UsuarioResumen>(
+      `${BASE}/${id}/${activo ? 'activar' : 'desactivar'}`,
+      null,
+      conMensaje(),
+    );
   }
 
   restablecerPassword(id: number): Observable<UsuarioConPasswordTemporal> {
-    return this.http.post<UsuarioConPasswordTemporal>(`${BASE}/${id}/restablecer-password`, null, conMensaje());
+    return this.http.post<UsuarioConPasswordTemporal>(
+      `${BASE}/${id}/restablecer-password`,
+      null,
+      conMensaje(),
+    );
   }
 }
