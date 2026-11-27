@@ -38,7 +38,7 @@ import { AvisosBeneficiario } from './avisos-beneficiario';
   ],
   providers: [AccionesBeneficiario],
   templateUrl: './beneficiarios.html',
-  styleUrls: ['../listado.scss', './beneficiarios.scss'],
+  styleUrls: ['../../../shared/estilos/listado.scss', './beneficiarios.scss'],
 })
 export class Beneficiarios implements OnInit {
   private readonly servicio = inject(BeneficiariosService);
