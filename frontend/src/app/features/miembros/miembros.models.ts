@@ -137,3 +137,12 @@ export interface VinculoApoderado {
 }
 
 export const PARENTESCOS = ['Madre', 'Padre', 'Abuela', 'Abuelo', 'Tía', 'Tío', 'Hermana', 'Hermano', 'Tutor legal', 'Otro'];
+
+export interface ContactoEmergencia {
+  id: number;
+  nombre: string;
+  parentesco: string | null;
+  telefono: string;
+}
+
+export type SolicitudContacto = Omit<ContactoEmergencia, 'id'>;

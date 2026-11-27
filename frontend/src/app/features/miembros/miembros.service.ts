@@ -10,11 +10,13 @@ import {
   ApoderadoResumen,
   BeneficiarioDetalle,
   BeneficiarioResumen,
+  ContactoEmergencia,
   EstadoBeneficiario,
   MovimientoHistorial,
   Patrulla,
   SolicitudApoderado,
   SolicitudBeneficiario,
+  SolicitudContacto,
   SolicitudMovimiento,
   Unidad,
   VinculoApoderado,
@@ -152,4 +154,27 @@ export class ApoderadosService {
 export interface CuentaPortal {
   usuario: UsuarioResumen;
   passwordTemporal: string | null;
+}
+
+/** Contactos de emergencia de un beneficiario. */
+@Injectable({ providedIn: 'root' })
+export class ContactosService {
+  private readonly http = inject(HttpClient);
+  private ruta = (beneficiarioId: number) => `${BASE}/beneficiarios/${beneficiarioId}/contactos`;
+
+  listar(beneficiarioId: number): Observable<ContactoEmergencia[]> {
+    return this.http.get<ContactoEmergencia[]>(this.ruta(beneficiarioId));
+  }
+
+  crear(beneficiarioId: number, datos: SolicitudContacto): Observable<ContactoEmergencia[]> {
+    return this.http.post<ContactoEmergencia[]>(this.ruta(beneficiarioId), datos, conMensaje());
+  }
+
+  editar(beneficiarioId: number, id: number, datos: SolicitudContacto): Observable<ContactoEmergencia[]> {
+    return this.http.put<ContactoEmergencia[]>(`${this.ruta(beneficiarioId)}/${id}`, datos, conMensaje());
+  }
+
+  eliminar(beneficiarioId: number, id: number): Observable<ContactoEmergencia[]> {
+    return this.http.delete<ContactoEmergencia[]>(`${this.ruta(beneficiarioId)}/${id}`, conMensaje());
+  }
 }

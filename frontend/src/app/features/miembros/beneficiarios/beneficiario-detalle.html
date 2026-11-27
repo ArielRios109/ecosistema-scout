@@ -64,7 +64,9 @@
     </mat-tab>
 
     <mat-tab label="Contactos">
-      <p class="texto-secundario p-4 texto-centro">Los contactos de emergencia se gestionarán aquí.</p>
+      <ng-template matTabContent>
+        <app-contactos-beneficiario [beneficiarioId]="b.id" />
+      </ng-template>
     </mat-tab>
 
     <mat-tab label="Ficha médica">
