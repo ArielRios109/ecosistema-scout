@@ -2,6 +2,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using EcosistemaScout.Api.Comun;
 using EcosistemaScout.Api.Modulos.Base;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -25,10 +26,13 @@ public class InterceptorBitacora(IUsuarioActual usuarioActual, TimeProvider relo
         nameof(Rol.ConcurrencyStamp),
     ];
 
-    /// <summary>Tipos de entidad que no se auditan (la propia bitácora y tablas internas de Identity).</summary>
+    /// <summary>
+    /// Tipos de entidad que no se auditan: la propia bitácora, tablas internas de Identity y las llaves de cifrado
+    /// (registrarlas en la bitácora expondría las llaves).
+    /// </summary>
     private static readonly HashSet<Type> TiposExcluidos =
     [
-        typeof(Bitacora), typeof(IdentityUserToken<long>), typeof(IdentityUserLogin<long>),
+        typeof(Bitacora), typeof(IdentityUserToken<long>), typeof(IdentityUserLogin<long>), typeof(DataProtectionKey),
     ];
 
     /// <summary>JSON legible (tildes y ñ sin escapar) para revisar la bitácora directamente en la base de datos.</summary>

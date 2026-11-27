@@ -146,3 +146,21 @@ export interface ContactoEmergencia {
 }
 
 export type SolicitudContacto = Omit<ContactoEmergencia, 'id'>;
+
+export interface FichaMedica {
+  existe: boolean;
+  prevision: string | null;
+  grupoSanguineo: string | null;
+  alergias: string | null;
+  enfermedades: string | null;
+  medicamentos: string | null;
+  restriccionesAlimentarias: string | null;
+  necesidadesEmocionales: string | null;
+  actualizadaEl: string | null;
+  actualizadaPor: string | null;
+}
+
+export type SolicitudFichaMedica = Omit<FichaMedica, 'existe' | 'actualizadaEl' | 'actualizadaPor'>;
+
+export const GRUPOS_SANGUINEOS = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
+export const PREVISIONES = ['Fonasa', 'Isapre', 'Capredena', 'Dipreca', 'Particular', 'Otra'];

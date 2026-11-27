@@ -12,11 +12,13 @@ import {
   BeneficiarioResumen,
   ContactoEmergencia,
   EstadoBeneficiario,
+  FichaMedica,
   MovimientoHistorial,
   Patrulla,
   SolicitudApoderado,
   SolicitudBeneficiario,
   SolicitudContacto,
+  SolicitudFichaMedica,
   SolicitudMovimiento,
   Unidad,
   VinculoApoderado,
@@ -176,5 +178,20 @@ export class ContactosService {
 
   eliminar(beneficiarioId: number, id: number): Observable<ContactoEmergencia[]> {
     return this.http.delete<ContactoEmergencia[]>(`${this.ruta(beneficiarioId)}/${id}`, conMensaje());
+  }
+}
+
+/** Ficha médica del beneficiario (la API la guarda cifrada). */
+@Injectable({ providedIn: 'root' })
+export class FichaMedicaService {
+  private readonly http = inject(HttpClient);
+  private ruta = (beneficiarioId: number) => `${BASE}/beneficiarios/${beneficiarioId}/ficha-medica`;
+
+  obtener(beneficiarioId: number): Observable<FichaMedica> {
+    return this.http.get<FichaMedica>(this.ruta(beneficiarioId));
+  }
+
+  guardar(beneficiarioId: number, datos: SolicitudFichaMedica): Observable<FichaMedica> {
+    return this.http.put<FichaMedica>(this.ruta(beneficiarioId), datos, conMensaje());
   }
 }

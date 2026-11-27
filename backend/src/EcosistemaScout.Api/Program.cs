@@ -5,7 +5,9 @@ using EcosistemaScout.Api.Datos;
 using EcosistemaScout.Api.Modulos.Base;
 using EcosistemaScout.Api.Modulos.Base.Autenticacion;
 using EcosistemaScout.Api.Modulos.Base.Autorizacion;
+using EcosistemaScout.Api.Modulos.Miembros.FichasMedicas;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -32,6 +34,13 @@ builder.Services.AddDbContext<AppDbContext>((servicios, opciones) =>
     opciones.UseNpgsql(conexion).UseSnakeCaseNamingConvention()
         .AddInterceptors(servicios.GetRequiredService<InterceptorBitacora>());
 });
+
+// ----- Cifrado de datos sensibles (ficha médica) -----
+// Las llaves se guardan en la base de datos para que sobrevivan a reinicios del contenedor.
+builder.Services.AddDataProtection()
+    .SetApplicationName("Tali")
+    .PersistKeysToDbContext<AppDbContext>();
+builder.Services.AddSingleton<CifradoFichaMedica>();
 
 // ----- Usuarios y roles (ASP.NET Identity) -----
 builder.Services

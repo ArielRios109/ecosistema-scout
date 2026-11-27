@@ -70,7 +70,9 @@
     </mat-tab>
 
     <mat-tab label="Ficha médica">
-      <p class="texto-secundario p-4 texto-centro">La ficha médica se gestionará aquí.</p>
+      <ng-template matTabContent>
+        <app-ficha-medica-beneficiario [beneficiarioId]="b.id" />
+      </ng-template>
     </mat-tab>
 
     <mat-tab label="Historial">
