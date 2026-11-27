@@ -1,3 +1,4 @@
+using EcosistemaScout.Api.Comun;
 using EcosistemaScout.Api.Modulos.Base.Autorizacion;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,5 +12,5 @@ namespace EcosistemaScout.Api.Modulos.Finanzas;
 public class FinanzasController : ControllerBase
 {
     [HttpGet]
-    public EstadoModulo Get() => EstadoModulo.EnConstruccion("finanzas");
+    public ResponseData<EstadoModulo> Get() => ResponseData.Ok(EstadoModulo.EnConstruccion("finanzas"));
 }

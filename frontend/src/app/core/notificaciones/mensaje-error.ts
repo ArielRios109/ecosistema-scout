@@ -1,13 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { esResponseData } from '../api/response-data';
 
 /**
  * Traduce un error HTTP a un mensaje entendible para el usuario.
- * Si la API envía un ProblemDetails con "title" o "detail", se usa ese texto.
+ * Si la API envía un ResponseData con `mensaje` (y `errores`), se usa ese texto.
  */
 export function mensajeError(error: HttpErrorResponse): string {
-  const deLaApi: unknown = error.error?.detail ?? error.error?.title;
-  if (typeof deLaApi === 'string' && deLaApi.trim() && error.status !== 0) {
-    return deLaApi;
+  if (error.status !== 0 && esResponseData(error.error) && error.error.mensaje) {
+    const detalle = error.error.errores?.length ? ` ${error.error.errores.join(' ')}` : '';
+    return error.error.mensaje + detalle;
   }
 
   switch (error.status) {

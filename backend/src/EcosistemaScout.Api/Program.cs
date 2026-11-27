@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using EcosistemaScout.Api.Comun;
 using EcosistemaScout.Api.Configuracion;
 using EcosistemaScout.Api.Datos;
 using EcosistemaScout.Api.Modulos.Base;
@@ -81,6 +82,7 @@ builder.Services.AddCors(o => o.AddPolicy(PoliticaFrontend, p => p
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AgregarManejoErrores();
 
 var app = builder.Build();
 
@@ -109,6 +111,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+// Todas las respuestas de error en formato ResponseData (excepciones, 401, 403, 404...)
+app.UsarManejoErrores();
 app.UseCors(PoliticaFrontend);
 app.UseAuthentication();
 app.UseAuthorization();

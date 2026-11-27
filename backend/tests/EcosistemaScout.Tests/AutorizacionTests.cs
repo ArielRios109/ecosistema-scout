@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using EcosistemaScout.Api.Comun;
 using EcosistemaScout.Api.Modulos.Base.Autenticacion;
 
 namespace EcosistemaScout.Tests;
@@ -43,6 +44,12 @@ public class AutorizacionTests(FabricaApiPruebas fabrica) : IClassFixture<Fabric
         var respuesta = await cliente.GetAsync($"/api/{modulo}");
 
         Assert.Equal(esperado, respuesta.StatusCode);
+        var cuerpo = await respuesta.Content.ReadFromJsonAsync<ResponseData<object>>();
+        Assert.Equal(esperado == HttpStatusCode.OK, cuerpo!.Exito);
+        if (esperado == HttpStatusCode.Forbidden)
+        {
+            Assert.Equal("No tienes permiso para realizar esta acción.", cuerpo.Mensaje);
+        }
     }
 
     [Theory]
@@ -62,6 +69,6 @@ public class AutorizacionTests(FabricaApiPruebas fabrica) : IClassFixture<Fabric
         var login = await cliente.PostAsJsonAsync("/api/auth/login",
             new SolicitudLogin(email, FabricaApiPruebas.PasswordDemo));
         login.EnsureSuccessStatusCode();
-        return (await login.Content.ReadFromJsonAsync<RespuestaLogin>())!.Token;
+        return (await login.Content.ReadFromJsonAsync<ResponseData<RespuestaLogin>>())!.Datos!.Token;
     }
 }
