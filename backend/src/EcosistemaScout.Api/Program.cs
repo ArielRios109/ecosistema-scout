@@ -88,6 +88,7 @@ builder.Services.AddAuthorization(Politicas.Registrar);
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<ServicioTokens>();
 builder.Services.AddScoped<DatosIniciales>();
+builder.Services.AddScoped<DatosDemoMiembros>();
 
 // ----- CORS para el frontend Angular -----
 const string PoliticaFrontend = "frontend";
@@ -122,6 +123,11 @@ using (var scope = app.Services.CreateScope())
 
     var usuariosDemo = app.Configuration.GetValue("Seed:UsuariosDemo", false);
     await scope.ServiceProvider.GetRequiredService<DatosIniciales>().CargarAsync(usuariosDemo);
+    if (usuariosDemo)
+    {
+        // Datos ficticios de Miembros para probar la aplicación (solo junto con los usuarios demo).
+        await scope.ServiceProvider.GetRequiredService<DatosDemoMiembros>().CargarAsync();
+    }
 }
 
 if (app.Environment.IsDevelopment())
