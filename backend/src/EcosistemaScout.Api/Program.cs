@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using EcosistemaScout.Api.Configuracion;
 using EcosistemaScout.Api.Datos;
 using EcosistemaScout.Api.Modulos.Base;
 using EcosistemaScout.Api.Modulos.Base.Autenticacion;
@@ -8,6 +9,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// En producción, no permitir los valores de desarrollo que vienen en el repositorio.
+ValidacionProduccion.Verificar(builder.Configuration, builder.Environment);
 
 // ----- Base de datos (PostgreSQL) -----
 builder.Services.AddDbContext<AppDbContext>(opciones =>
