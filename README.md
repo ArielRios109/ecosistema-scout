@@ -1,5 +1,7 @@
 # Ecosistema Digital Scout
 
+**Talí** es el nombre de la aplicación del proyecto Ecosistema Digital Scout. En el movimiento scout, un *talí* (o *thalí* / *tally*) es el cuaderno o bitácora de la patrulla o unidad donde se registran la historia, las actividades, los campamentos, las tradiciones y las experiencias de sus integrantes. La aplicación cumple ese mismo rol en forma digital para la gestión del grupo, por eso lleva su nombre.
+
 Sistema web de gestión de miembros, inventario y financiamiento para grupos de la Asociación de Guías y Scouts de Chile (AGSCh), con un portal donde los apoderados revisan sus cuotas e informan pagos por transferencia.
 
 ## Qué problema resuelve
@@ -20,30 +22,84 @@ Fuera del alcance: pago en línea, eventos y campamentos, gestión documental y 
 
 ## Tecnologías
 
-- PHP 8.3 y Laravel 11 (monolito modular)
-- Blade y Tailwind CSS (interfaz adaptable al celular)
-- PostgreSQL 16
-- Docker y Docker Compose (nginx, app, worker, db; Mailpit en desarrollo)
-- Pest/PHPUnit, k6 y OWASP ZAP para pruebas
+| Capa | Tecnología |
+|---|---|
+| Backend | C# con .NET 10 (API web con controladores), Entity Framework Core 10 + Npgsql |
+| Autenticación | ASP.NET Identity y tokens JWT; roles administrador, tesoreria, dirigente, apoderado y revisor |
+| Frontend | Angular 22 con Angular Material 3 (interfaz adaptable al celular) |
+| Base de datos | PostgreSQL 18 |
+| Infraestructura | Docker y Docker Compose (db, api, frontend con nginx) |
+| Pruebas | xUnit (backend) y Vitest (frontend) |
+| Editores | Visual Studio 2026 (backend) y VS Code (frontend) |
 
-## Cómo ejecutarlo localmente
+## Estructura del repositorio
 
-Requisitos: Docker Desktop y Git.
-
-```bash
-git clone https://github.com/USUARIO/ecosistema-scout.git
-cd ecosistema-scout
-cp .env.example .env
-docker compose --profile dev up -d --build
-docker compose exec app php artisan key:generate
-docker compose exec app php artisan migrate --seed
+```
+backend/                     Solución .NET (abrir EcosistemaScout.slnx en Visual Studio)
+  src/EcosistemaScout.Api/   API: Modulos/{Base,Miembros,Inventario,Finanzas,Portal}, Datos/ (DbContext y migraciones)
+  tests/EcosistemaScout.Tests/  Pruebas de integración con xUnit
+frontend/                    Aplicación Angular (abrir la carpeta en VS Code)
+  src/app/core/              Autenticación (servicio, interceptor y guards)
+  src/app/layout/shell/      Barra superior y menú lateral
+  src/app/features/          Un módulo por carpeta, cargado bajo demanda
+database/schema.sql          Modelo de datos de referencia (28 tablas)
+docker-compose.yml           Entorno completo con Docker
 ```
 
-- Aplicación: http://localhost:8080
-- Correos de prueba (Mailpit): http://localhost:8025
-- Usuarios de demostración (contraseña `password`): admin@demo.cl, tesoreria@demo.cl, dirigente@demo.cl, apoderado@demo.cl, revisor@demo.cl
+## Inicio rápido
 
-Pruebas: `docker compose exec app php artisan test`
+Requisitos: [Git](https://git-scm.com) y [Docker Desktop](https://www.docker.com/products/docker-desktop/). No hace falta configurar nada.
+
+```bash
+git clone https://github.com/ArielRios109/ecosistema-scout.git
+cd ecosistema-scout
+docker compose up -d --build
+```
+
+Abre **http://localhost:8080** e ingresa con cualquiera de los usuarios de demostración, todos con la contraseña `TaliDemo2026`:
+
+| Usuario | Rol |
+|---|---|
+| admin@demo.cl | Administración |
+| tesoreria@demo.cl | Tesorería |
+| dirigente@demo.cl | Dirigente |
+| apoderado@demo.cl | Apoderado |
+| revisor@demo.cl | Comisión revisora |
+
+Al iniciar, la API crea la base de datos con sus migraciones y carga los datos iniciales (roles, plan de cuentas y centro de costo). Los valores que se usan sin un archivo `.env` son **públicos y solo para desarrollo**.
+
+## Desarrollo
+
+Además de Docker: SDK de .NET 10, Node.js 22 y Angular CLI 22.
+
+1. Levanta solo la base de datos: `docker compose up -d db` (queda en `localhost:5433`).
+2. API: abre `backend/EcosistemaScout.slnx` en Visual Studio y presiona ▶ (perfil `http`, puerto 5095), o ejecuta `dotnet run --project backend/src/EcosistemaScout.Api`. Ya viene configurada para conectarse a la base de Docker (`appsettings.Development.json`).
+3. Frontend: `cd frontend`, `npm install` y `npm start` → http://localhost:4200 (las llamadas a `/api` se reenvían a la API).
+
+Si necesitas valores distintos en tu PC, usa `dotnet user-secrets` (API) o un archivo `.env` (Docker); ninguno de los dos se sube al repositorio.
+
+## Producción
+
+1. Copia `.env.example` como `.env` y reemplaza **todos** los valores `cambiar_esto` por valores propios y seguros (contraseña de la base de datos y una clave JWT aleatoria de al menos 32 caracteres).
+2. Mantén `ASPNETCORE_ENVIRONMENT=Production` y `SEED_USUARIOS_DEMO=false`.
+3. Levanta el sistema con `docker compose up -d --build` detrás de un proxy con HTTPS.
+
+Por seguridad, la API **no arranca en producción** si detecta la clave o la contraseña de desarrollo, o los usuarios de demostración activados.
+
+### Pruebas
+
+```bash
+dotnet test backend            # pruebas de la API
+cd frontend && npx ng test     # pruebas del frontend
+```
+
+### Nueva migración de base de datos
+
+```bash
+cd backend
+dotnet tool restore
+dotnet ef migrations add NombreDelCambio -p src/EcosistemaScout.Api -o Datos/Migraciones
+```
 
 ## Integrantes y roles
 
@@ -56,25 +112,38 @@ Capstone PTY4614, sección 004D, Ingeniería en Informática, Duoc UC.
 
 ## Metodología
 
-Tradicional en cascada con entrega de un MVP: análisis → diseño → construcción → pruebas → entrega. Cada fase cierra con un documento revisado (carpeta `docs/`). Los cambios a la línea base se registran en una matriz de control de cambios. En Git usamos una rama por módulo, pull requests revisados por el otro integrante y mensajes con Conventional Commits.
+Tradicional en cascada con entrega de un MVP: análisis → diseño → construcción → pruebas → entrega. Cada fase cierra con un documento revisado. Los cambios a la línea base se registran en una matriz de control de cambios. En Git usamos una rama por módulo, pull requests revisados por el otro integrante y mensajes con Conventional Commits.
 
 ## Arquitectura
 
-Monolito modular en capas (presentación, lógica de negocio por módulo y acceso a datos) con una instancia por grupo: cada grupo tiene su propia aplicación, base de datos y archivos, levantados desde la misma imagen Docker.
+Aplicación web con frontend Angular (SPA) y una API .NET organizada como monolito modular, con una instancia por grupo: cada grupo tiene su propia aplicación y base de datos, levantadas desde las mismas imágenes Docker.
 
 ```
-Navegador ──HTTPS──> nginx ──FastCGI──> app (Laravel) ──> PostgreSQL
-                                          │
-                                          ├──> volumen de archivos (comprobantes, fotos)
-                                          └──> worker (cola de correos y PDF) ──> SMTP
+Navegador ──> nginx (frontend Angular) ──/api──> API .NET 10 ──> PostgreSQL 18
+                  │                                   │
+                  └── archivos estáticos de la SPA    └── autenticación JWT (ASP.NET Identity)
 ```
 
-Módulos: `app/Modules/Base`, `Miembros`, `Inventario`, `Finanzas`, `Portal`. El modelo de datos (28 tablas) está en `database/schema.sql` y en el Documento de Diseño.
+- **Frontend:** una sola aplicación Angular con una *shell* común (barra superior y menú lateral) y un módulo por carpeta en `src/app/features/`, cargado bajo demanda.
+- **Backend:** módulos en `Modulos/Base`, `Miembros`, `Inventario`, `Finanzas` y `Portal`. Entity Framework Core mapea las 28 tablas de `database/schema.sql` (más las tablas auxiliares de Identity) y las crea mediante migraciones.
+- **Repositorio único (monorepo):** backend y frontend viven juntos para que cada funcionalidad se revise en un solo pull request.
+
+## Créditos
+
+Videos de fondo de la pantalla de inicio de sesión, obtenidos de [Pexels](https://www.pexels.com) bajo la [licencia Pexels](https://www.pexels.com/license/) (uso gratuito, se permite modificarlos). Fueron recortados a 8 segundos y comprimidos en dos versiones: 1080p para computador y 720p para celular:
+
+| Paisaje | Autor | Fuente |
+|---|---|---|
+| Torres del Paine | Marek Piwnicki | https://www.pexels.com/video/epic-aerial-view-of-torres-del-paine-mountains-39730323/ |
+| Desierto de Atacama | Marek Piwnicki | https://www.pexels.com/video/breathtaking-aerial-view-of-atacama-desert-40449624/ |
+| Volcán Osorno | Videas Cl | https://www.pexels.com/video/dramatic-view-of-osorno-volcano-in-chile-32773278/ |
+| Costa de Algarrobo | Esteban Llanos | https://www.pexels.com/video/ola-del-oceano-pacifico-17489318/ |
 
 ## Documentación
 
-- `docs/01_Documento_de_Inicio_y_Planificacion.docx`
-- `docs/02_ERS_Especificacion_de_Requisitos.docx`
-- `docs/03_Documento_de_Diseno.docx`
-- `docs/04_Plan_de_Pruebas.docx`
-- `docs/05_Manual_Tecnico_y_Despliegue.docx`
+- [Convenciones del proyecto](docs/convenciones.md): interfaz, manejo de errores, seguridad, backend y Git.
+- [Evidencias por etapa](docs/evidencias/): capturas del sistema funcionando y resultados de las pruebas.
+
+## Licencia
+
+Software propietario. © 2026 Ariel Rios y Alonso Salas. Todos los derechos reservados. Ver [LICENSE](LICENSE).

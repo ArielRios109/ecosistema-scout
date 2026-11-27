@@ -1,0 +1,54 @@
+<mat-toolbar class="barra">
+  <button mat-icon-button (click)="menu.toggle()" aria-label="Abrir o cerrar el menú">
+    <mat-icon>menu</mat-icon>
+  </button>
+  <a class="marca" routerLink="/inicio" aria-label="Talí, ir al inicio">
+    <img class="logo" src="img/tali-logo-blanco.svg" alt="" width="31" height="32" />
+    <span class="titulo">Talí</span>
+  </a>
+  <span class="espacio"></span>
+
+  @if (auth.usuario(); as usuario) {
+    <button mat-button class="boton-usuario" [matMenuTriggerFor]="menuUsuario" aria-label="Opciones de la cuenta">
+      <mat-icon>account_circle</mat-icon>
+      <span class="identidad">
+        <span class="nombre-usuario">{{ usuario.nombre }}</span>
+        <span class="rol-usuario">{{ rolesLegibles() }}</span>
+      </span>
+    </button>
+    <mat-menu #menuUsuario="matMenu">
+      <div class="datos-usuario" mat-menu-item disabled>
+        <span>{{ usuario.email }}</span>
+        <small>{{ rolesLegibles() }}</small>
+      </div>
+      <button mat-menu-item (click)="auth.logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Cerrar sesión</span>
+      </button>
+    </mat-menu>
+  }
+</mat-toolbar>
+
+<mat-sidenav-container class="contenedor">
+  <mat-sidenav #menu [mode]="modoMenu()" [opened]="!esMovil()" class="menu-lateral">
+    <mat-nav-list>
+      @for (enlace of enlaces(); track enlace.ruta) {
+        <a
+          mat-list-item
+          [routerLink]="enlace.ruta"
+          routerLinkActive
+          #activo="routerLinkActive"
+          [activated]="activo.isActive"
+          (click)="esMovil() && menu.close()"
+        >
+          <mat-icon matListItemIcon>{{ enlace.icono }}</mat-icon>
+          <span matListItemTitle>{{ enlace.etiqueta }}</span>
+        </a>
+      }
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="contenido">
+    <router-outlet />
+  </mat-sidenav-content>
+</mat-sidenav-container>

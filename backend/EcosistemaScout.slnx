@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/EcosistemaScout.Api/EcosistemaScout.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/EcosistemaScout.Tests/EcosistemaScout.Tests.csproj" />
+  </Folder>
+</Solution>

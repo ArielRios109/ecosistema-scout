@@ -1,0 +1,10 @@
+{
+  // Extensiones recomendadas para este repositorio. VS Code ofrece instalarlas al abrir la carpeta.
+  "recommendations": [
+    "angular.ng-template",
+    "editorconfig.editorconfig",
+    "esbenp.prettier-vscode",
+    "ms-azuretools.vscode-containers",
+    "ms-dotnettools.csdevkit"
+  ]
+}

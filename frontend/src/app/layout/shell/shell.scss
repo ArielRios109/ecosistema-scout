@@ -1,0 +1,87 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.barra {
+  position: relative;
+  z-index: 2;
+  gap: 8px;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+
+  button {
+    color: inherit;
+  }
+}
+
+.marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.logo {
+  height: 32px;
+  width: auto;
+}
+
+.titulo {
+  font: var(--mat-sys-title-large);
+}
+
+.espacio {
+  flex: 1;
+}
+
+.boton-usuario {
+  height: auto;
+  padding-block: 4px;
+}
+
+.identidad {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+  margin-left: 6px;
+}
+
+.rol-usuario {
+  font: var(--mat-sys-label-small);
+  opacity: 0.85;
+}
+
+.datos-usuario {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+  height: auto;
+  padding-block: 8px;
+}
+
+.contenedor {
+  flex: 1;
+}
+
+.menu-lateral {
+  width: 240px;
+}
+
+.contenido {
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 599px) {
+  .identidad {
+    display: none;
+  }
+
+  .contenido {
+    padding: 16px;
+  }
+}

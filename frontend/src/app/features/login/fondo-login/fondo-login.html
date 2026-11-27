@@ -1,0 +1,15 @@
+<div class="fondo" aria-hidden="true">
+  @for (escena of escenas; track escena.nombre; let i = $index) {
+    <div
+      class="escena"
+      [class.activa]="i === actual()"
+      [class.fija]="!conVideo()"
+      [style.background-image]="'url(' + imagen(escena) + ')'"
+    >
+      @if (conVideo()) {
+        <video #video class="video" [poster]="imagen(escena)" muted playsinline preload="none"></video>
+      }
+    </div>
+  }
+  <div class="capa-oscura"></div>
+</div>

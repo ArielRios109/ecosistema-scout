@@ -1,0 +1,26 @@
+<h1 class="saludo">Hola, {{ auth.usuario()?.nombre }}</h1>
+<p class="bajada">Bienvenido al sistema de gestión del grupo scout.</p>
+
+<mat-card appearance="outlined" class="estado">
+  <mat-card-header>
+    <mat-card-title>Estado del sistema</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <ul class="lista">
+      <li>
+        <mat-icon [class]="api()">{{ icono(api()) }}</mat-icon>
+        <span>API: {{ texto(api()) }}</span>
+      </li>
+      <li>
+        <mat-icon [class]="baseDatos()">{{ icono(baseDatos()) }}</mat-icon>
+        <span>Base de datos: {{ texto(baseDatos()) }}</span>
+      </li>
+    </ul>
+  </mat-card-content>
+  <mat-card-actions>
+    <button mat-button (click)="verificar()">
+      <mat-icon>refresh</mat-icon>
+      Volver a verificar
+    </button>
+  </mat-card-actions>
+</mat-card>
