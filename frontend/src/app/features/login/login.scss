@@ -1,0 +1,34 @@
+.contenedor {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  box-sizing: border-box;
+  background: var(--mat-sys-surface-container-low);
+}
+
+.tarjeta {
+  width: 100%;
+  max-width: 400px;
+  overflow: hidden;
+}
+
+.logo {
+  display: grid;
+  place-items: center;
+  color: var(--mat-sys-on-primary);
+  background: var(--mat-sys-primary);
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 16px;
+}
+
+.error {
+  margin: 0 0 12px;
+  color: var(--mat-sys-error);
+  font: var(--mat-sys-body-medium);
+}
