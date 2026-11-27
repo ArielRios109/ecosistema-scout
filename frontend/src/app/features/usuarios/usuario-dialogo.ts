@@ -26,7 +26,7 @@ export interface ResultadoUsuarioDialogo {
   template: `
     <h2 mat-dialog-title>{{ datos.usuario ? 'Editar usuario' : 'Nuevo usuario' }}</h2>
     <mat-dialog-content>
-      <form [formGroup]="formulario" class="flex-col gap-1 mt-2" id="form-usuario" (ngSubmit)="guardar()">
+      <form [formGroup]="formulario" class="flex-col gap-1" id="form-usuario" (ngSubmit)="guardar()">
         <mat-form-field appearance="outline">
           <mat-label>Nombre</mat-label>
           <input matInput formControlName="nombre" maxlength="120" />

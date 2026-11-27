@@ -14,7 +14,7 @@ import { RAMAS, Unidad } from '../miembros.models';
   template: `
     <h2 mat-dialog-title>{{ unidad ? 'Editar unidad' : 'Nueva unidad' }}</h2>
     <mat-dialog-content>
-      <form [formGroup]="formulario" id="form-unidad" class="flex-col gap-1 mt-2" (ngSubmit)="guardar()">
+      <form [formGroup]="formulario" id="form-unidad" class="flex-col gap-1" (ngSubmit)="guardar()">
         <mat-form-field appearance="outline">
           <mat-label>Nombre</mat-label>
           <input matInput formControlName="nombre" maxlength="80" placeholder="Ej.: Tropa Halcones" />

@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -20,7 +20,7 @@ export interface DatosTextoDialogo {
   template: `
     <h2 mat-dialog-title>{{ datos.titulo }}</h2>
     <mat-dialog-content>
-      <form id="form-texto" class="mt-2" (ngSubmit)="guardar()">
+      <form [formGroup]="formulario" id="form-texto" (ngSubmit)="guardar()">
         <mat-form-field appearance="outline" class="ancho-completo">
           <mat-label>{{ datos.etiqueta }}</mat-label>
           <input matInput [formControl]="control" [maxlength]="datos.maximo ?? 120" />
@@ -43,6 +43,7 @@ export class TextoDialogo {
     nonNullable: true,
     validators: [Validators.required],
   });
+  protected readonly formulario = new FormGroup({ texto: this.control });
 
   protected guardar(): void {
     if (this.control.invalid || !this.control.value.trim()) {
