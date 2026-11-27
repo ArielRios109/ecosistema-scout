@@ -1,23 +1,60 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
 .contenedor {
+  position: relative;
+  z-index: 1;
   min-height: 100%;
   display: grid;
   place-items: center;
   padding: 16px;
   box-sizing: border-box;
-  background: var(--mat-sys-surface-container-low);
 }
 
+// Tarjeta semitransparente con desenfoque para leerse bien sobre el fondo
 .tarjeta {
   width: 100%;
   max-width: 400px;
   overflow: hidden;
+  background: color-mix(in srgb, var(--mat-sys-surface) 84%, transparent);
+  backdrop-filter: blur(14px) saturate(1.2);
+  border-color: rgb(255 255 255 / 0.35);
+  box-shadow: 0 12px 40px rgb(0 0 0 / 0.35);
+}
+
+.encabezado {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px 0;
+  text-align: center;
 }
 
 .logo {
-  display: grid;
-  place-items: center;
-  color: var(--mat-sys-on-primary);
-  background: var(--mat-sys-primary);
+  height: 96px;
+  width: auto;
+  filter: drop-shadow(0 2px 4px rgb(0 0 0 / 0.2));
+}
+
+.nombre-app {
+  margin: 8px 0 0;
+  font: var(--mat-sys-headline-medium);
+  color: var(--mat-sys-primary);
+}
+
+.subtitulo {
+  margin: 2px 0 0;
+  font: var(--mat-sys-title-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.indicacion {
+  margin: 16px 0 0;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
 }
 
 .formulario {

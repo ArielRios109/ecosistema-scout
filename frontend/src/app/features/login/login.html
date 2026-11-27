@@ -1,15 +1,17 @@
+<app-fondo-login />
 <main class="contenedor">
   <mat-card class="tarjeta" appearance="outlined">
     @if (cargando()) {
       <mat-progress-bar mode="indeterminate" />
     }
-    <mat-card-header>
-      <mat-icon mat-card-avatar class="logo">forest</mat-icon>
-      <mat-card-title>Ecosistema Scout</mat-card-title>
-      <mat-card-subtitle>Inicia sesión para continuar</mat-card-subtitle>
-    </mat-card-header>
+    <header class="encabezado">
+      <img class="logo" src="img/tali-logo.svg" alt="Logo de Talí" width="92" height="96" />
+      <h1 class="nombre-app">Talí</h1>
+      <p class="subtitulo">Ecosistema Digital Scout</p>
+    </header>
 
     <mat-card-content>
+      <p class="indicacion">Inicia sesión para continuar</p>
       <form [formGroup]="formulario" (ngSubmit)="ingresar()" class="formulario">
         <mat-form-field appearance="outline">
           <mat-label>Correo electrónico</mat-label>

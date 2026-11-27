@@ -8,10 +8,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { Router } from '@angular/router';
 import { Auth } from '../../core/auth/auth';
+import { FondoLogin } from './fondo-login/fondo-login';
 
 @Component({
   selector: 'app-login',
   imports: [
+    FondoLogin,
     ReactiveFormsModule,
     MatCardModule,
     MatFormFieldModule,

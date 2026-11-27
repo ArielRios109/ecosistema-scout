@@ -2,7 +2,10 @@
   <button mat-icon-button (click)="menu.toggle()" aria-label="Abrir o cerrar el menú">
     <mat-icon>menu</mat-icon>
   </button>
-  <span class="titulo">Ecosistema Scout</span>
+  <a class="marca" routerLink="/inicio" aria-label="Talí, ir al inicio">
+    <img class="logo" src="img/tali-logo-blanco.svg" alt="" width="31" height="32" />
+    <span class="titulo">Talí</span>
+  </a>
   <span class="espacio"></span>
 
   @if (auth.usuario(); as usuario) {
