@@ -31,6 +31,7 @@ export interface DatosTextoDialogo {
         <mat-form-field appearance="outline" class="ancho-completo">
           <mat-label>{{ datos.etiqueta }}</mat-label>
           <input matInput [formControl]="control" [maxlength]="datos.maximo ?? 120" />
+          <mat-hint align="end">{{ control.value.length }}/{{ datos.maximo ?? 120 }}</mat-hint>
           @if (control.hasError('required')) {
             <mat-error>Este campo es obligatorio.</mat-error>
           }

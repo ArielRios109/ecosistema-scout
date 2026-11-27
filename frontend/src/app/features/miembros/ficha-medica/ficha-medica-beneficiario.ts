@@ -117,6 +117,9 @@ const CAMPOS: {
                 rows="2"
                 maxlength="1000"
               ></textarea>
+              <mat-hint align="end"
+                >{{ formulario.get(campo.clave)?.value?.length ?? 0 }}/1000</mat-hint
+              >
               <mat-hint>{{ campo.ayuda }}</mat-hint>
             </mat-form-field>
           }

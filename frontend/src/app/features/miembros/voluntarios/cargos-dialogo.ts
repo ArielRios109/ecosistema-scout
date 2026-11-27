@@ -80,6 +80,7 @@ import { UnidadesService, VoluntariosService } from '../miembros.service';
         <mat-form-field appearance="outline" class="completo">
           <mat-label>Cargo</mat-label>
           <input matInput formControlName="cargo" [matAutocomplete]="auto" maxlength="60" />
+          <mat-hint align="end">{{ formulario.controls.cargo.value?.length ?? 0 }}/60</mat-hint>
           <mat-autocomplete #auto="matAutocomplete">
             @for (s of sugerencias(); track s) {
               <mat-option [value]="s">{{ s }}</mat-option>

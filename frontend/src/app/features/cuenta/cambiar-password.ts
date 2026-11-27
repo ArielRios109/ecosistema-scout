@@ -54,6 +54,7 @@ const POLITICA = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
               matInput
               type="password"
               formControlName="passwordActual"
+              maxlength="100"
               autocomplete="current-password"
             />
             @if (formulario.controls.passwordActual.hasError('required')) {
@@ -66,6 +67,7 @@ const POLITICA = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
               matInput
               [type]="ver() ? 'text' : 'password'"
               formControlName="passwordNueva"
+              maxlength="100"
               autocomplete="new-password"
             />
             <button
@@ -90,6 +92,7 @@ const POLITICA = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
               matInput
               [type]="ver() ? 'text' : 'password'"
               formControlName="confirmacion"
+              maxlength="100"
               autocomplete="new-password"
             />
             @if (formulario.hasError('noCoinciden') && formulario.controls.confirmacion.touched) {

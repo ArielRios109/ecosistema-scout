@@ -29,6 +29,7 @@ import { protegerDialogo } from '../../../shared/confirmacion/confirmacion';
         <mat-form-field appearance="outline">
           <mat-label>Nombre</mat-label>
           <input matInput formControlName="nombre" maxlength="120" />
+          <mat-hint align="end">{{ formulario.controls.nombre.value.length }}/120</mat-hint>
           <mat-error>Ingresa el nombre del contacto.</mat-error>
         </mat-form-field>
         <mat-form-field appearance="outline">
@@ -39,6 +40,7 @@ import { protegerDialogo } from '../../../shared/confirmacion/confirmacion';
             maxlength="40"
             placeholder="Ej.: Tía, vecina"
           />
+          <mat-hint align="end">{{ formulario.controls.parentesco.value.length }}/40</mat-hint>
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Teléfono</mat-label>
@@ -49,6 +51,7 @@ import { protegerDialogo } from '../../../shared/confirmacion/confirmacion';
             maxlength="20"
             placeholder="+56 9 1234 5678"
           />
+          <mat-hint align="end">{{ formulario.controls.telefono.value.length }}/20</mat-hint>
           @if (formulario.controls.telefono.hasError('required')) {
             <mat-error>Ingresa el teléfono.</mat-error>
           } @else {

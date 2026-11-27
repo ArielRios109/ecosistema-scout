@@ -31,6 +31,7 @@ import { protegerDialogo } from '../../../shared/confirmacion/confirmacion';
             maxlength="80"
             placeholder="Ej.: Tropa Halcones"
           />
+          <mat-hint align="end">{{ formulario.controls.nombre.value.length }}/80</mat-hint>
           @if (formulario.controls.nombre.hasError('required')) {
             <mat-error>Ingresa el nombre de la unidad.</mat-error>
           }

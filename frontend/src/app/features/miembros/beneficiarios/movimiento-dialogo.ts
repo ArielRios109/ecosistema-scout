@@ -86,6 +86,7 @@ export interface DatosMovimientoDialogo {
         <mat-form-field appearance="outline">
           <mat-label>{{ esRetiro ? 'Motivo (opcional)' : 'Comentario (opcional)' }}</mat-label>
           <textarea matInput formControlName="detalle" maxlength="255" rows="2"></textarea>
+          <mat-hint align="end">{{ formulario.controls.detalle.value?.length ?? 0 }}/255</mat-hint>
         </mat-form-field>
       </form>
     </mat-dialog-content>

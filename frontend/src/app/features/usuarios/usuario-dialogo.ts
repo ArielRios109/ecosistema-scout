@@ -43,6 +43,7 @@ export interface ResultadoUsuarioDialogo {
         <mat-form-field appearance="outline">
           <mat-label>Nombre</mat-label>
           <input matInput formControlName="nombre" maxlength="120" />
+          <mat-hint align="end">{{ formulario.controls.nombre.value.length }}/120</mat-hint>
           @if (formulario.controls.nombre.hasError('required')) {
             <mat-error>Ingresa el nombre.</mat-error>
           }
@@ -50,6 +51,7 @@ export interface ResultadoUsuarioDialogo {
         <mat-form-field appearance="outline">
           <mat-label>Correo electrónico</mat-label>
           <input matInput type="email" formControlName="email" maxlength="120" />
+          <mat-hint align="end">{{ formulario.controls.email.value.length }}/120</mat-hint>
           @if (formulario.controls.email.hasError('required')) {
             <mat-error>Ingresa el correo.</mat-error>
           } @else if (formulario.controls.email.hasError('email')) {

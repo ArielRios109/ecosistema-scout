@@ -13,13 +13,13 @@ public record UsuarioResumen(
     long Id, string Nombre, string Email, IReadOnlyList<string> Roles, bool Activo, bool DebeCambiarPassword, DateTime? UltimoAcceso);
 
 public record SolicitudCrearUsuario(
-    [Required(ErrorMessage = "Ingresa el nombre.")][MaxLength(120)] string Nombre,
-    [Required(ErrorMessage = "Ingresa el correo.")][EmailAddress(ErrorMessage = "El correo no es válido.")][MaxLength(120)] string Email,
+    [Required(ErrorMessage = "Ingresa el nombre.")][MaxLength(120, ErrorMessage = "El nombre admite hasta 120 caracteres.")] string Nombre,
+    [Required(ErrorMessage = "Ingresa el correo.")][EmailAddress(ErrorMessage = "El correo no es válido.")][MaxLength(120, ErrorMessage = "El correo admite hasta 120 caracteres.")] string Email,
     [Required(ErrorMessage = "Asigna al menos un rol.")][MinLength(1, ErrorMessage = "Asigna al menos un rol.")] IReadOnlyList<string> Roles);
 
 public record SolicitudEditarUsuario(
-    [Required(ErrorMessage = "Ingresa el nombre.")][MaxLength(120)] string Nombre,
-    [Required(ErrorMessage = "Ingresa el correo.")][EmailAddress(ErrorMessage = "El correo no es válido.")][MaxLength(120)] string Email);
+    [Required(ErrorMessage = "Ingresa el nombre.")][MaxLength(120, ErrorMessage = "El nombre admite hasta 120 caracteres.")] string Nombre,
+    [Required(ErrorMessage = "Ingresa el correo.")][EmailAddress(ErrorMessage = "El correo no es válido.")][MaxLength(120, ErrorMessage = "El correo admite hasta 120 caracteres.")] string Email);
 
 public record SolicitudRoles(
     [Required(ErrorMessage = "Asigna al menos un rol.")][MinLength(1, ErrorMessage = "Asigna al menos un rol.")] IReadOnlyList<string> Roles);

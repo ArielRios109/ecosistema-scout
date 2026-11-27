@@ -8,16 +8,16 @@ using Microsoft.AspNetCore.Mvc;
 namespace EcosistemaScout.Api.Modulos.Base.Autenticacion;
 
 public record SolicitudLogin(
-    [Required(ErrorMessage = "Ingresa tu correo.")][EmailAddress(ErrorMessage = "El correo no es válido.")] string Email,
-    [Required(ErrorMessage = "Ingresa tu contraseña.")] string Password);
+    [Required(ErrorMessage = "Ingresa tu correo.")][EmailAddress(ErrorMessage = "El correo no es válido.")][MaxLength(120, ErrorMessage = "El correo admite hasta 120 caracteres.")] string Email,
+    [Required(ErrorMessage = "Ingresa tu contraseña.")][MaxLength(100, ErrorMessage = "La contraseña admite hasta 100 caracteres.")] string Password);
 
 public record UsuarioActual(long Id, string Nombre, string Email, IReadOnlyList<string> Roles, bool DebeCambiarPassword = false);
 
 public record RespuestaLogin(string Token, DateTime Expira, UsuarioActual Usuario);
 
 public record SolicitudCambiarPassword(
-    [Required(ErrorMessage = "Ingresa tu contraseña actual.")] string PasswordActual,
-    [Required(ErrorMessage = "Ingresa la nueva contraseña.")][MinLength(8, ErrorMessage = "La nueva contraseña debe tener al menos 8 caracteres.")] string PasswordNueva);
+    [Required(ErrorMessage = "Ingresa tu contraseña actual.")][MaxLength(100, ErrorMessage = "La contraseña admite hasta 100 caracteres.")] string PasswordActual,
+    [Required(ErrorMessage = "Ingresa la nueva contraseña.")][MinLength(8, ErrorMessage = "La nueva contraseña debe tener al menos 8 caracteres.")][MaxLength(100, ErrorMessage = "La nueva contraseña admite hasta 100 caracteres.")] string PasswordNueva);
 
 /// <summary>Inicio de sesión con correo y contraseña; entrega un token JWT.</summary>
 [ApiController]
