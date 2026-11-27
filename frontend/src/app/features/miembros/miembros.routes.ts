@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { EnConstruccion } from '../../shared/en-construccion/en-construccion';
 import { MiembrosLayout } from './miembros-layout';
 
 /** Rutas del módulo Gestión de Miembros (se carga solo cuando se visita). */
@@ -31,8 +30,7 @@ export const MIEMBROS_ROUTES: Routes = [
       },
       {
         path: 'voluntarios',
-        component: EnConstruccion,
-        data: { titulo: 'Voluntarios', icono: 'volunteer_activism' },
+        loadComponent: () => import('./voluntarios/voluntarios').then((m) => m.Voluntarios),
         title: 'Voluntarios · Talí',
       },
     ],

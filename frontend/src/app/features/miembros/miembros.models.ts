@@ -164,3 +164,56 @@ export type SolicitudFichaMedica = Omit<FichaMedica, 'existe' | 'actualizadaEl' 
 
 export const GRUPOS_SANGUINEOS = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
 export const PREVISIONES = ['Fonasa', 'Isapre', 'Capredena', 'Dipreca', 'Particular', 'Otra'];
+
+export interface Cargo {
+  id: number;
+  cargo: string;
+  unidadId: number | null;
+  unidad: string | null;
+  fechaInicio: string;
+  fechaTermino: string | null;
+  vigente: boolean;
+}
+
+export interface VoluntarioResumen {
+  id: number;
+  rut: string;
+  nombres: string;
+  apellidos: string;
+  email: string | null;
+  telefono: string | null;
+  tieneCuenta: boolean;
+  cargosVigentes: Cargo[];
+}
+
+export interface VoluntarioDetalle extends Omit<VoluntarioResumen, 'cargosVigentes'> {
+  cargos: Cargo[];
+}
+
+export interface SolicitudVoluntario {
+  rut: string;
+  nombres: string;
+  apellidos: string;
+  email: string | null;
+  telefono: string | null;
+}
+
+export interface SolicitudCargo {
+  cargo: string;
+  unidadId: number | null;
+  fechaInicio: string;
+  fechaTermino: string | null;
+}
+
+/** Sugerencias de cargos (se puede escribir otro). */
+export const CARGOS_SUGERIDOS = [
+  'Responsable de grupo',
+  'Asistente de grupo',
+  'Responsable de unidad',
+  'Asistente de unidad',
+  'Dirigente de unidad',
+  'Tesorería',
+  'Secretaría',
+  'Comité de padres',
+  'Apoyo',
+];

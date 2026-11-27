@@ -1,0 +1,138 @@
+<div class="filtros flex items-center gap-2 mb-2">
+  <mat-form-field appearance="outline" class="flex-1 buscador" subscriptSizing="dynamic">
+    <mat-label>Buscar por nombre, RUT o cargo</mat-label>
+    <mat-icon matPrefix>search</mat-icon>
+    <input matInput [(ngModel)]="buscar" (ngModelChange)="alBuscar($event)" />
+  </mat-form-field>
+  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+    <mat-label>Unidad</mat-label>
+    <mat-select [(ngModel)]="unidadId" (selectionChange)="alFiltrar()">
+      <mat-option [value]="null">Todas</mat-option>
+      @for (u of unidades(); track u.id) {
+        <mat-option [value]="u.id">{{ u.nombre }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+    <mat-label>Cargo</mat-label>
+    <mat-select [(ngModel)]="conCargo" (selectionChange)="alFiltrar()">
+      <mat-option [value]="null">Todos</mat-option>
+      <mat-option [value]="true">Con cargo vigente</mat-option>
+      <mat-option [value]="false">Sin cargo vigente</mat-option>
+    </mat-select>
+  </mat-form-field>
+  <button mat-flat-button (click)="nuevo()">
+    <mat-icon>person_add</mat-icon>
+    Nuevo voluntario
+  </button>
+</div>
+
+<ng-template #menuAcciones let-v>
+  <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Acciones">
+    <mat-icon>more_vert</mat-icon>
+  </button>
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item (click)="cargos(v)">
+      <mat-icon>badge</mat-icon>
+      <span>Cargos</span>
+    </button>
+    <button mat-menu-item (click)="editar(v)">
+      <mat-icon>edit</mat-icon>
+      <span>Editar datos</span>
+    </button>
+    @if (v.cargosVigentes.length === 0) {
+      <button mat-menu-item (click)="eliminar(v)">
+        <mat-icon>delete</mat-icon>
+        <span>Eliminar</span>
+      </button>
+    }
+  </mat-menu>
+</ng-template>
+
+<ng-template #listaCargos let-v>
+  @if (v.cargosVigentes.length === 0) {
+    <span class="texto-secundario">Sin cargo vigente</span>
+  } @else {
+    <mat-chip-set aria-label="Cargos vigentes">
+      @for (c of v.cargosVigentes; track c.id) {
+        <mat-chip>{{ c.cargo }}{{ c.unidad ? ' · ' + c.unidad : '' }}</mat-chip>
+      }
+    </mat-chip-set>
+  }
+</ng-template>
+
+@if (esMovil()) {
+  <div class="flex-col gap-2">
+    @for (v of voluntarios(); track v.id) {
+      <mat-card appearance="outlined">
+        <mat-card-header>
+          <mat-card-title>{{ v.nombres }} {{ v.apellidos }}</mat-card-title>
+          <mat-card-subtitle>{{ v.rut }}</mat-card-subtitle>
+          <div class="acciones-tarjeta">
+            <ng-container *ngTemplateOutlet="menuAcciones; context: { $implicit: v }" />
+          </div>
+        </mat-card-header>
+        <mat-card-content class="mt-2">
+          <ng-container *ngTemplateOutlet="listaCargos; context: { $implicit: v }" />
+        </mat-card-content>
+      </mat-card>
+    } @empty {
+      <p class="texto-secundario texto-centro p-4">No hay voluntarios que coincidan.</p>
+    }
+  </div>
+} @else {
+  <div class="tabla-contenedor">
+    <table mat-table [dataSource]="voluntarios()" class="ancho-completo">
+      <ng-container matColumnDef="nombre">
+        <th mat-header-cell *matHeaderCellDef>Nombre</th>
+        <td mat-cell *matCellDef="let v">{{ v.apellidos }}, {{ v.nombres }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="rut">
+        <th mat-header-cell *matHeaderCellDef>RUT</th>
+        <td mat-cell *matCellDef="let v" class="texto-secundario">{{ v.rut }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="contacto">
+        <th mat-header-cell *matHeaderCellDef>Contacto</th>
+        <td mat-cell *matCellDef="let v">
+          <div class="flex-col">
+            <span>{{ v.email ?? '—' }}</span>
+            @if (v.telefono) {
+              <small class="texto-secundario">{{ v.telefono }}</small>
+            }
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="cargos">
+        <th mat-header-cell *matHeaderCellDef>Cargos vigentes</th>
+        <td mat-cell *matCellDef="let v">
+          <ng-container *ngTemplateOutlet="listaCargos; context: { $implicit: v }" />
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let v" class="acciones">
+          <ng-container *ngTemplateOutlet="menuAcciones; context: { $implicit: v }" />
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+      <tr mat-row *matRowDef="let fila; columns: columnas"></tr>
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell p-3 texto-secundario" [attr.colspan]="columnas.length">No hay voluntarios que coincidan.</td>
+      </tr>
+    </table>
+  </div>
+}
+
+<mat-paginator
+  [length]="total()"
+  [pageIndex]="pagina - 1"
+  [pageSize]="tamano"
+  [pageSizeOptions]="[10, 25, 50]"
+  (page)="alPaginar($event)"
+  aria-label="Páginas de voluntarios"
+/>

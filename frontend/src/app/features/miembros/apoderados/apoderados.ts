@@ -40,7 +40,7 @@ import { ApoderadoDialogo } from './apoderado-dialogo';
     MatInputModule,
   ],
   templateUrl: './apoderados.html',
-  styleUrl: './apoderados.scss',
+  styleUrls: ['../listado.scss', './apoderados.scss'],
 })
 export class Apoderados implements OnInit {
   private readonly servicio = inject(ApoderadosService);

@@ -19,9 +19,13 @@ import {
   SolicitudBeneficiario,
   SolicitudContacto,
   SolicitudFichaMedica,
+  SolicitudCargo,
   SolicitudMovimiento,
+  SolicitudVoluntario,
   Unidad,
   VinculoApoderado,
+  VoluntarioDetalle,
+  VoluntarioResumen,
 } from './miembros.models';
 
 const BASE = '/api/miembros';
@@ -193,5 +197,49 @@ export class FichaMedicaService {
 
   guardar(beneficiarioId: number, datos: SolicitudFichaMedica): Observable<FichaMedica> {
     return this.http.put<FichaMedica>(this.ruta(beneficiarioId), datos, conMensaje());
+  }
+}
+
+export interface FiltroVoluntarios extends ConsultaPaginada {
+  unidadId?: number | null;
+  conCargo?: boolean | null;
+}
+
+/** Voluntarios adultos y sus cargos. */
+@Injectable({ providedIn: 'root' })
+export class VoluntariosService {
+  private readonly http = inject(HttpClient);
+  private readonly base = `${BASE}/voluntarios`;
+
+  listar(filtro: FiltroVoluntarios): Observable<Pagina<VoluntarioResumen>> {
+    return this.http.get<Pagina<VoluntarioResumen>>(this.base, { params: aParametros(filtro) });
+  }
+
+  obtener(id: number): Observable<VoluntarioDetalle> {
+    return this.http.get<VoluntarioDetalle>(`${this.base}/${id}`);
+  }
+
+  crear(datos: SolicitudVoluntario): Observable<VoluntarioDetalle> {
+    return this.http.post<VoluntarioDetalle>(this.base, datos, conMensaje());
+  }
+
+  editar(id: number, datos: SolicitudVoluntario): Observable<VoluntarioDetalle> {
+    return this.http.put<VoluntarioDetalle>(`${this.base}/${id}`, datos, conMensaje());
+  }
+
+  eliminar(id: number): Observable<unknown> {
+    return this.http.delete(`${this.base}/${id}`, conMensaje());
+  }
+
+  agregarCargo(id: number, datos: SolicitudCargo): Observable<VoluntarioDetalle> {
+    return this.http.post<VoluntarioDetalle>(`${this.base}/${id}/cargos`, datos, conMensaje());
+  }
+
+  terminarCargo(id: number, cargoId: number, fechaTermino: string | null): Observable<VoluntarioDetalle> {
+    return this.http.post<VoluntarioDetalle>(`${this.base}/${id}/cargos/${cargoId}/terminar`, { fechaTermino }, conMensaje());
+  }
+
+  eliminarCargo(id: number, cargoId: number): Observable<VoluntarioDetalle> {
+    return this.http.delete<VoluntarioDetalle>(`${this.base}/${id}/cargos/${cargoId}`, conMensaje());
   }
 }
