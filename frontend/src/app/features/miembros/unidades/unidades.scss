@@ -1,0 +1,40 @@
+.grilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+mat-card-header {
+  position: relative;
+}
+
+.menu-unidad {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+}
+
+.subtitulo {
+  font: var(--mat-sys-title-small);
+}
+
+.icono-chico {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+}
+
+.inactiva {
+  opacity: 0.6;
+}
+
+mat-chip {
+  cursor: pointer;
+}
+
+@media (max-width: 599px) {
+  .barra-acciones {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+}

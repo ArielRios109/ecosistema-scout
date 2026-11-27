@@ -12,6 +12,12 @@ En los grupos scout la información administrativa vive en planillas, papeles y 
 
 ## Módulos del MVP
 
+| Módulo | Estado |
+|---|---|
+| Base | Listo: inicio de sesión, usuarios y roles, contraseña temporal, bitácora |
+| Gestión de Miembros | Listo |
+| Inventario, Financiamiento y Portal de pagos | En construcción |
+
 - **Base**: Inicio de sesión, usuarios, roles acumulables con alcance por unidad, configuración del grupo y bitácora de auditoría.
 - **Gestión de Miembros**: Unidades y patrullas, beneficiarios, apoderados y sus vínculos, contactos de emergencia, ficha médica cifrada, voluntarios y cargos, historial de cada beneficiario.
 - **Inventario**: Bienes con los campos del formulario DAF-FOR-04, préstamos y devoluciones, bajas con motivo y exportación a Excel.
@@ -43,6 +49,7 @@ frontend/                    Aplicación Angular (abrir la carpeta en VS Code)
   src/app/layout/shell/      Barra superior y menú lateral
   src/app/features/          Un módulo por carpeta, cargado bajo demanda
 database/schema.sql          Modelo de datos de referencia (28 tablas)
+docs/                        Convenciones, API, modelo de datos y evidencias
 docker-compose.yml           Entorno completo con Docker
 ```
 
@@ -66,7 +73,7 @@ Abre **http://localhost:8080** e ingresa con cualquiera de los usuarios de demos
 | apoderado@demo.cl | Apoderado |
 | revisor@demo.cl | Comisión revisora |
 
-Al iniciar, la API crea la base de datos con sus migraciones y carga los datos iniciales (roles, plan de cuentas y centro de costo). Los valores que se usan sin un archivo `.env` son **públicos y solo para desarrollo**.
+Al iniciar, la API crea la base de datos con sus migraciones y carga los datos iniciales (roles, plan de cuentas y centro de costo). En desarrollo también carga **datos de demostración ficticios** de Miembros: 6 unidades con sus patrullas, 20 beneficiarios, apoderados, contactos, fichas médicas y voluntarios. Los valores que se usan sin un archivo `.env` son **públicos y solo para desarrollo**.
 
 ## Desarrollo
 
@@ -142,6 +149,8 @@ Videos de fondo de la pantalla de inicio de sesión, obtenidos de [Pexels](https
 ## Documentación
 
 - [Convenciones del proyecto](docs/convenciones.md): interfaz, manejo de errores, seguridad, backend y Git.
+- [API](docs/api.md): convención de rutas, formato de respuesta, permisos por rol y lista de endpoints.
+- [Modelo de datos](docs/modelo-datos.md): diagrama entidad-relación y descripción de cada tabla.
 - [Evidencias por etapa](docs/evidencias/): capturas del sistema funcionando y resultados de las pruebas.
 
 ## Licencia

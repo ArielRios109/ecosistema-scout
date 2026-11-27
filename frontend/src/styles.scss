@@ -49,6 +49,19 @@ app-root {
   height: 100%;
 }
 
+// Formularios en diálogos: Material anula el margen superior del primer hijo de mat-dialog-content
+// y la etiqueta flotante del primer campo quedaba cortada; se deja espacio con padding.
+.mat-mdc-dialog-content > form {
+  padding-top: 8px;
+}
+
+// Diálogos: nunca más anchos ni más altos que la pantalla (16 px de margen por lado en el celular).
+// Material fija max-width: 80vw en línea; con este límite el ancho pedido (p. ej. 520px) se respeta en computador.
+.mat-mdc-dialog-panel {
+  max-width: calc(100vw - 32px) !important;
+  max-height: calc(100dvh - 32px);
+}
+
 // ----- Notificaciones (snackbar de Material 3, centrado arriba) -----
 // Colores por tipo usando los tokens del sistema de Material 3.
 .notificacion-error {

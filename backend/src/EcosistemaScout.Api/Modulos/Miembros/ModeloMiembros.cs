@@ -45,13 +45,22 @@ internal static class ModeloMiembros
         builder.Entity<FichaMedica>(e =>
         {
             e.ToTable("fichas_medicas");
-            e.Property(x => x.Prevision).HasMaxLength(40);
-            e.Property(x => x.GrupoSanguineo).HasMaxLength(5);
+            // Todos los datos de salud se guardan cifrados (ASP.NET Data Protection), por eso las columnas son
+            // de texto sin largo fijo; los largos máximos se validan antes de cifrar. En la bitácora se registran
+            // como "(dato protegido)".
+            e.Property(x => x.Prevision).Sensible();
+            e.Property(x => x.GrupoSanguineo).Sensible();
+            e.Property(x => x.Alergias).Sensible();
+            e.Property(x => x.Enfermedades).Sensible();
+            e.Property(x => x.Medicamentos).Sensible();
+            e.Property(x => x.RestriccionesAlimentarias).Sensible();
+            e.Property(x => x.NecesidadesEmocionales).Sensible();
             e.HasIndex(x => x.BeneficiarioId).IsUnique();
             e.HasOne(x => x.Beneficiario).WithOne(b => b.FichaMedica)
                 .HasForeignKey<FichaMedica>(x => x.BeneficiarioId).OnDelete(DeleteBehavior.Cascade);
-            // Igual que schema.sql (ON DELETE CASCADE). Ver observación en el PR.
-            e.HasOne<Usuario>().WithMany().HasForeignKey(x => x.ActualizadoPor).OnDelete(DeleteBehavior.Cascade);
+            // SET NULL: si se elimina la cuenta de quien modificó la ficha, la ficha se conserva
+            // (schema.sql original usaba CASCADE y borraba la ficha del beneficiario).
+            e.HasOne<Usuario>().WithMany().HasForeignKey(x => x.ActualizadoPor).OnDelete(DeleteBehavior.SetNull);
             e.ConFechas();
         });
 

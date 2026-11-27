@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
+import { CanActivateChildFn, CanActivateFn, Router } from '@angular/router';
 import { Notificaciones } from '../notificaciones/notificaciones';
 import { Auth } from './auth';
 import { Modulo, puedeVerModulo } from './permisos';
@@ -14,6 +14,18 @@ export const authGuard: CanActivateFn = () => {
 export const invitadoGuard: CanActivateFn = () => {
   const auth = inject(Auth);
   return auth.autenticado() ? inject(Router).createUrlTree(['/']) : true;
+};
+
+/**
+ * Con una contraseña temporal, la única pantalla disponible es "Cambiar mi contraseña"
+ * (la API también bloquea el resto de las peticiones).
+ */
+export const cambioPasswordGuard: CanActivateChildFn = (_ruta, estado) => {
+  const auth = inject(Auth);
+  if (!auth.debeCambiarPassword() || estado.url.startsWith('/cambiar-password')) {
+    return true;
+  }
+  return inject(Router).createUrlTree(['/cambiar-password']);
 };
 
 /**

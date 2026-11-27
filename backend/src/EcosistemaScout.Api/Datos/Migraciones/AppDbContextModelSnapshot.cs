@@ -233,6 +233,10 @@ namespace EcosistemaScout.Api.Datos.Migraciones
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("now()");
 
+                    b.Property<bool>("DebeCambiarPassword")
+                        .HasColumnType("boolean")
+                        .HasColumnName("debe_cambiar_password");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(120)
@@ -1348,7 +1352,8 @@ namespace EcosistemaScout.Api.Datos.Migraciones
 
                     b.Property<string>("Alergias")
                         .HasColumnType("text")
-                        .HasColumnName("alergias");
+                        .HasColumnName("alergias")
+                        .HasAnnotation("Talí:Sensible", true);
 
                     b.Property<long>("BeneficiarioId")
                         .HasColumnType("bigint")
@@ -1362,29 +1367,33 @@ namespace EcosistemaScout.Api.Datos.Migraciones
 
                     b.Property<string>("Enfermedades")
                         .HasColumnType("text")
-                        .HasColumnName("enfermedades");
+                        .HasColumnName("enfermedades")
+                        .HasAnnotation("Talí:Sensible", true);
 
                     b.Property<string>("GrupoSanguineo")
-                        .HasMaxLength(5)
-                        .HasColumnType("character varying(5)")
-                        .HasColumnName("grupo_sanguineo");
+                        .HasColumnType("text")
+                        .HasColumnName("grupo_sanguineo")
+                        .HasAnnotation("Talí:Sensible", true);
 
                     b.Property<string>("Medicamentos")
                         .HasColumnType("text")
-                        .HasColumnName("medicamentos");
+                        .HasColumnName("medicamentos")
+                        .HasAnnotation("Talí:Sensible", true);
 
                     b.Property<string>("NecesidadesEmocionales")
                         .HasColumnType("text")
-                        .HasColumnName("necesidades_emocionales");
+                        .HasColumnName("necesidades_emocionales")
+                        .HasAnnotation("Talí:Sensible", true);
 
                     b.Property<string>("Prevision")
-                        .HasMaxLength(40)
-                        .HasColumnType("character varying(40)")
-                        .HasColumnName("prevision");
+                        .HasColumnType("text")
+                        .HasColumnName("prevision")
+                        .HasAnnotation("Talí:Sensible", true);
 
                     b.Property<string>("RestriccionesAlimentarias")
                         .HasColumnType("text")
-                        .HasColumnName("restricciones_alimentarias");
+                        .HasColumnName("restricciones_alimentarias")
+                        .HasAnnotation("Talí:Sensible", true);
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
@@ -1738,6 +1747,29 @@ namespace EcosistemaScout.Api.Datos.Migraciones
                         {
                             t.HasCheckConstraint("ck_pago_informado_cargo_monto_aplicado", "monto_aplicado > 0");
                         });
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FriendlyName")
+                        .HasColumnType("text")
+                        .HasColumnName("friendly_name");
+
+                    b.Property<string>("Xml")
+                        .HasColumnType("text")
+                        .HasColumnName("xml");
+
+                    b.HasKey("Id")
+                        .HasName("pk_data_protection_keys");
+
+                    b.ToTable("data_protection_keys", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<long>", b =>
@@ -2130,7 +2162,7 @@ namespace EcosistemaScout.Api.Datos.Migraciones
                     b.HasOne("EcosistemaScout.Api.Modulos.Base.Usuario", null)
                         .WithMany()
                         .HasForeignKey("ActualizadoPor")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("fk_fichas_medicas_usuarios_actualizado_por");
 
                     b.HasOne("EcosistemaScout.Api.Modulos.Miembros.Beneficiario", "Beneficiario")

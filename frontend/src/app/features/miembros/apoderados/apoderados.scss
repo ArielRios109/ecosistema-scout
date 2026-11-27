@@ -1,0 +1,7 @@
+.icono-cuenta {
+  color: var(--mat-sys-on-surface-variant);
+
+  &.activa {
+    color: var(--mat-sys-primary);
+  }
+}

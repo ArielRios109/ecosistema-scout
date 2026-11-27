@@ -5,7 +5,9 @@ using EcosistemaScout.Api.Datos;
 using EcosistemaScout.Api.Modulos.Base;
 using EcosistemaScout.Api.Modulos.Base.Autenticacion;
 using EcosistemaScout.Api.Modulos.Base.Autorizacion;
+using EcosistemaScout.Api.Modulos.Miembros.FichasMedicas;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -15,8 +17,13 @@ var builder = WebApplication.CreateBuilder(args);
 // En producción, no permitir los valores de desarrollo que vienen en el repositorio.
 ValidacionProduccion.Verificar(builder.Configuration, builder.Environment);
 
+// ----- Usuario de la petición y bitácora de auditoría -----
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IUsuarioActual, ServicioUsuarioActual>();
+builder.Services.AddScoped<InterceptorBitacora>();
+
 // ----- Base de datos (PostgreSQL) -----
-builder.Services.AddDbContext<AppDbContext>(opciones =>
+builder.Services.AddDbContext<AppDbContext>((servicios, opciones) =>
 {
     var conexion = builder.Configuration.GetConnectionString("Default");
     if (string.IsNullOrWhiteSpace(conexion))
@@ -24,8 +31,16 @@ builder.Services.AddDbContext<AppDbContext>(opciones =>
         throw new InvalidOperationException(
             "Falta la cadena de conexión 'ConnectionStrings:Default'. Configúrala con user-secrets o variables de entorno (ver README).");
     }
-    opciones.UseNpgsql(conexion).UseSnakeCaseNamingConvention();
+    opciones.UseNpgsql(conexion).UseSnakeCaseNamingConvention()
+        .AddInterceptors(servicios.GetRequiredService<InterceptorBitacora>());
 });
+
+// ----- Cifrado de datos sensibles (ficha médica) -----
+// Las llaves se guardan en la base de datos para que sobrevivan a reinicios del contenedor.
+builder.Services.AddDataProtection()
+    .SetApplicationName("Tali")
+    .PersistKeysToDbContext<AppDbContext>();
+builder.Services.AddSingleton<CifradoFichaMedica>();
 
 // ----- Usuarios y roles (ASP.NET Identity) -----
 builder.Services
@@ -39,7 +54,9 @@ builder.Services
     })
     .AddRoles<Rol>()
     .AddEntityFrameworkStores<AppDbContext>()
-    .AddSignInManager();
+    .AddSignInManager()
+    .AddDefaultTokenProviders()
+    .AddErrorDescriber<ErroresIdentityEspanol>();
 
 // ----- Autenticación con JWT -----
 builder.Services.Configure<JwtOpciones>(builder.Configuration.GetSection(JwtOpciones.Seccion));
@@ -71,6 +88,7 @@ builder.Services.AddAuthorization(Politicas.Registrar);
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<ServicioTokens>();
 builder.Services.AddScoped<DatosIniciales>();
+builder.Services.AddScoped<DatosDemoMiembros>();
 
 // ----- CORS para el frontend Angular -----
 const string PoliticaFrontend = "frontend";
@@ -80,7 +98,8 @@ builder.Services.AddCors(o => o.AddPolicy(PoliticaFrontend, p => p
     .AllowAnyHeader()
     .AllowAnyMethod()));
 
-builder.Services.AddControllers();
+// Filtro global: con contraseña temporal solo se puede cambiar la contraseña.
+builder.Services.AddControllers(o => o.Filters.Add<FiltroCambioPassword>());
 builder.Services.AddOpenApi();
 builder.Services.AgregarManejoErrores();
 
@@ -104,6 +123,11 @@ using (var scope = app.Services.CreateScope())
 
     var usuariosDemo = app.Configuration.GetValue("Seed:UsuariosDemo", false);
     await scope.ServiceProvider.GetRequiredService<DatosIniciales>().CargarAsync(usuariosDemo);
+    if (usuariosDemo)
+    {
+        // Datos ficticios de Miembros para probar la aplicación (solo junto con los usuarios demo).
+        await scope.ServiceProvider.GetRequiredService<DatosDemoMiembros>().CargarAsync();
+    }
 }
 
 if (app.Environment.IsDevelopment())

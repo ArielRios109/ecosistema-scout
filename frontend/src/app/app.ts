@@ -11,7 +11,9 @@ export class App {
   constructor() {
     // Color de la barra del navegador en el celular, tomado del tema (sin colores fijos en el código).
     afterNextRender(() => {
-      const color = getComputedStyle(document.documentElement).getPropertyValue('--mat-sys-surface-container').trim();
+      const color = getComputedStyle(document.documentElement)
+        .getPropertyValue('--mat-sys-surface-container')
+        .trim();
       if (!color) return;
       let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
       if (!meta) {

@@ -1,0 +1,17 @@
+.fila,
+.tarjeta {
+  cursor: pointer;
+}
+
+.fila:hover {
+  background-color: var(--mat-sys-surface-container-low);
+}
+
+.estado {
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-primary);
+
+  &.retirado {
+    color: var(--mat-sys-on-surface-variant);
+  }
+}

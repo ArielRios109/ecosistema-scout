@@ -13,6 +13,10 @@ Si una regla cambia, se actualiza este archivo en el mismo pull request.
 4. **Spinner global.** Hay un solo indicador de carga para toda la app (`core/carga/`): lo muestra automáticamente el interceptor HTTP cuando una petición a la API tarda más de 300 ms. Los componentes **no** agregan spinners ni barras de progreso propios; para una petición en segundo plano se usa el token `SIN_SPINNER`.
 5. **Adaptable al celular.** Cada pantalla debe verse bien en computador y en celular (los apoderados usan el portal desde el teléfono).
 6. **Estructura:** cada módulo vive en su carpeta `src/app/features/<modulo>/` y se carga bajo demanda (*lazy loading*). Lo transversal va en `core/` (servicios únicos) y `shared/` (componentes reutilizables).
+7. **Formularios en diálogos** (`MatDialog`): el `<form>` siempre lleva `[formGroup]` (sin él, Enter recarga la página) y se envía con un botón `type="submit" form="id-del-form"` en `mat-dialog-actions`. Para confirmar acciones se usa `confirmar()` de `shared/confirmar/`.
+8. **Fechas:** los campos de fecha usan `mat-datepicker` con `proveerFechas()` (`core/i18n/fechas.ts`), que muestra y acepta `dd-mm-aaaa`; a la API se envían como `aaaa-mm-dd` con `aFechaIso()`.
+9. **RUT:** en los formularios se usa la directiva `appRut` (da formato al salir del campo) con el validador `validarRut` (`shared/rut/`).
+10. **Listados:** tabla de Material con búsqueda, filtros y `mat-paginator` en computador, y tarjetas en el celular (`BreakpointObserver`).
 
 ## 2. Identidad visual
 
@@ -69,6 +73,11 @@ En pantalla el nombre siempre se escribe **Talí** (con tilde); en código y URL
    - Se mantiene siempre el **código HTTP correcto** (200, 400, 401, 403, 404, 500…); nunca "200 con exito = false".
    - Los mensajes van en español y pensados para el usuario final.
    - El manejo global (`Comun/ManejoErrores.cs`) convierte excepciones (500), errores de validación (400 con la lista de `errores`) y respuestas sin cuerpo (401, 403, 404) al mismo formato. Las excepciones no exponen detalles internos al usuario; se registran en el log.
+5. **Rutas de la API:** `/api/{modulo}/{recurso}` en español, en plural y en kebab-case. Los recursos dependientes van anidados (`/beneficiarios/{id}/contactos`) y las acciones son `POST` con un verbo (`/retirar`). Detalle y lista de endpoints en [api.md](api.md).
+6. **Listados extensos paginados** con `ConsultaPaginada` y `PaginarAsync` (`Comun/Paginacion.cs`), que devuelven `Pagina<T>`.
+7. **Nada con historial se borra:** las unidades y patrullas se desactivan, los beneficiarios se retiran, los cargos se terminan y los movimientos se anulan. `DELETE` solo para registros sin dependencias.
+8. **Datos sensibles:** los datos de salud se cifran con `CifradoFichaMedica` (ASP.NET Data Protection) y sus propiedades se marcan con `.Sensible()`, para que la bitácora no los muestre.
+9. **Datos demo** (`Datos/DatosDemoMiembros.cs`): son ficticios, solo se cargan con `Seed:UsuariosDemo` (desarrollo) y una sola vez.
 
 ## 6. Git y pull requests
 

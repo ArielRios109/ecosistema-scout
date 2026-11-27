@@ -1,0 +1,92 @@
+<div class="flex items-center justify-between gap-3 mb-3 barra-acciones">
+  <mat-slide-toggle [(ngModel)]="incluirInactivas" (change)="cargar()"
+    >Mostrar inactivas</mat-slide-toggle
+  >
+  @if (esAdmin) {
+    <button mat-flat-button (click)="nuevaUnidad()">
+      <mat-icon>add</mat-icon>
+      Nueva unidad
+    </button>
+  }
+</div>
+
+@if (unidades().length === 0) {
+  <p class="texto-secundario texto-centro p-4">
+    Aún no hay unidades registradas.{{ esAdmin ? ' Crea la primera con "Nueva unidad".' : '' }}
+  </p>
+}
+
+<div class="grilla">
+  @for (unidad of unidades(); track unidad.id) {
+    <mat-card appearance="outlined" [class.inactiva]="!unidad.activa">
+      <mat-card-header>
+        <mat-card-title>{{ unidad.nombre }}</mat-card-title>
+        <mat-card-subtitle>
+          {{ etiquetaRama(unidad.rama) }}{{ unidad.activa ? '' : ' · Inactiva' }}
+        </mat-card-subtitle>
+        @if (esAdmin) {
+          <button
+            mat-icon-button
+            class="menu-unidad"
+            [matMenuTriggerFor]="menu"
+            aria-label="Acciones de la unidad"
+          >
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #menu="matMenu">
+            <button mat-menu-item (click)="editarUnidad(unidad)">
+              <mat-icon>edit</mat-icon>
+              <span>Editar</span>
+            </button>
+            <button mat-menu-item (click)="cambiarEstadoUnidad(unidad)">
+              <mat-icon>{{ unidad.activa ? 'block' : 'check_circle' }}</mat-icon>
+              <span>{{ unidad.activa ? 'Desactivar' : 'Activar' }}</span>
+            </button>
+          </mat-menu>
+        }
+      </mat-card-header>
+
+      <mat-card-content>
+        <p class="flex items-center gap-1 texto-secundario mt-2">
+          <mat-icon class="icono-chico">groups</mat-icon>
+          {{ unidad.beneficiarios }} beneficiario{{
+            unidad.beneficiarios === 1 ? '' : 's'
+          }}
+          activo{{ unidad.beneficiarios === 1 ? '' : 's' }}
+        </p>
+
+        <h3 class="subtitulo m-0 mt-3 mb-2">Patrullas</h3>
+        @if (unidad.patrullas.length === 0) {
+          <p class="texto-secundario m-0">Sin patrullas.</p>
+        } @else {
+          <mat-chip-set aria-label="Patrullas">
+            @for (patrulla of unidad.patrullas; track patrulla.id) {
+              <mat-chip [class.inactiva]="!patrulla.activa" [matMenuTriggerFor]="menuPatrulla">
+                {{ patrulla.nombre }} · {{ patrulla.beneficiarios }}
+              </mat-chip>
+              <mat-menu #menuPatrulla="matMenu">
+                <button mat-menu-item (click)="editarPatrulla(patrulla)">
+                  <mat-icon>edit</mat-icon>
+                  <span>Renombrar</span>
+                </button>
+                <button mat-menu-item (click)="cambiarEstadoPatrulla(patrulla)">
+                  <mat-icon>{{ patrulla.activa ? 'block' : 'check_circle' }}</mat-icon>
+                  <span>{{ patrulla.activa ? 'Desactivar' : 'Activar' }}</span>
+                </button>
+              </mat-menu>
+            }
+          </mat-chip-set>
+        }
+      </mat-card-content>
+
+      @if (unidad.activa) {
+        <mat-card-actions>
+          <button mat-button (click)="nuevaPatrulla(unidad)">
+            <mat-icon>add</mat-icon>
+            Agregar patrulla
+          </button>
+        </mat-card-actions>
+      }
+    </mat-card>
+  }
+</div>

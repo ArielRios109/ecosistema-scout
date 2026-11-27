@@ -6,10 +6,17 @@ import { Shell } from './shell';
 
 /** Muestra el shell con un usuario de prueba y devuelve los textos del menú lateral. */
 async function menuPara(roles: string[]): Promise<string[]> {
-  const usuario = signal<UsuarioActual>({ id: 1, nombre: 'Prueba', email: 'prueba@demo.cl', roles });
+  const usuario = signal<UsuarioActual>({
+    id: 1,
+    nombre: 'Prueba',
+    email: 'prueba@demo.cl',
+    roles,
+    debeCambiarPassword: false,
+  });
   const authFalso = {
     usuario: computed(() => usuario()),
     autenticado: computed(() => true),
+    debeCambiarPassword: computed(() => false),
     logout: () => undefined,
   };
 
@@ -20,18 +27,21 @@ async function menuPara(roles: string[]): Promise<string[]> {
 
   const fixture = TestBed.createComponent(Shell);
   await fixture.whenStable();
-  const enlaces = (fixture.nativeElement as HTMLElement).querySelectorAll('mat-nav-list a [matListItemTitle]');
+  const enlaces = (fixture.nativeElement as HTMLElement).querySelectorAll(
+    'mat-nav-list a [matListItemTitle]',
+  );
   return Array.from(enlaces).map((e) => e.textContent?.trim() ?? '');
 }
 
 describe('Shell: menú según el rol', () => {
-  it('el administrador ve todos los módulos', async () => {
+  it('el administrador ve todos los módulos y Usuarios', async () => {
     expect(await menuPara(['administrador'])).toEqual([
       'Inicio',
       'Miembros',
       'Inventario',
       'Finanzas',
       'Portal de pagos',
+      'Usuarios',
     ]);
   });
 

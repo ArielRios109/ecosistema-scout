@@ -9,6 +9,8 @@ export interface UsuarioActual {
   nombre: string;
   email: string;
   roles: string[];
+  /** true si ingresó con una contraseña temporal y debe cambiarla antes de seguir. */
+  debeCambiarPassword: boolean;
 }
 
 interface RespuestaLogin {
@@ -17,15 +19,11 @@ interface RespuestaLogin {
   usuario: UsuarioActual;
 }
 
-interface SesionGuardada {
-  token: string;
-  expira: string;
-  usuario: UsuarioActual;
-}
+type SesionGuardada = RespuestaLogin;
 
 const CLAVE_SESION = 'ecosistema-scout.sesion';
 
-/** Maneja el inicio y cierre de sesión y guarda el token JWT en el navegador. */
+/** Maneja el inicio y cierre de sesión, el cambio de contraseña y guarda el token JWT en el navegador. */
 @Injectable({ providedIn: 'root' })
 export class Auth {
   private readonly http = inject(HttpClient);
@@ -35,6 +33,9 @@ export class Auth {
 
   readonly usuario = computed(() => this.sesion()?.usuario ?? null);
   readonly autenticado = computed(() => this.sesion() !== null);
+  readonly debeCambiarPassword = computed(
+    () => this.sesion()?.usuario.debeCambiarPassword ?? false,
+  );
 
   get token(): string | null {
     return this.sesion()?.token ?? null;
@@ -42,17 +43,21 @@ export class Auth {
 
   login(email: string, password: string): Observable<RespuestaLogin> {
     const context = new HttpContext().set(MOSTRAR_MENSAJE_EXITO, true); // "Bienvenido, ..." en el snackbar
-    return this.http.post<RespuestaLogin>('/api/auth/login', { email, password }, { context }).pipe(
-      tap((respuesta) => {
-        const sesion: SesionGuardada = {
-          token: respuesta.token,
-          expira: respuesta.expira,
-          usuario: respuesta.usuario,
-        };
-        localStorage.setItem(CLAVE_SESION, JSON.stringify(sesion));
-        this.sesion.set(sesion);
-      }),
-    );
+    return this.http
+      .post<RespuestaLogin>('/api/auth/login', { email, password }, { context })
+      .pipe(tap((respuesta) => this.guardar(respuesta)));
+  }
+
+  /** Cambia la contraseña del usuario actual; la API entrega un token nuevo sin la marca de cambio pendiente. */
+  cambiarPassword(passwordActual: string, passwordNueva: string): Observable<RespuestaLogin> {
+    const context = new HttpContext().set(MOSTRAR_MENSAJE_EXITO, true);
+    return this.http
+      .post<RespuestaLogin>(
+        '/api/auth/cambiar-password',
+        { passwordActual, passwordNueva },
+        { context },
+      )
+      .pipe(tap((respuesta) => this.guardar(respuesta)));
   }
 
   logout(): void {
@@ -63,6 +68,16 @@ export class Auth {
 
   tieneRol(rol: string): boolean {
     return this.usuario()?.roles.includes(rol) ?? false;
+  }
+
+  private guardar(respuesta: RespuestaLogin): void {
+    const sesion: SesionGuardada = {
+      token: respuesta.token,
+      expira: respuesta.expira,
+      usuario: respuesta.usuario,
+    };
+    localStorage.setItem(CLAVE_SESION, JSON.stringify(sesion));
+    this.sesion.set(sesion);
   }
 
   private leerSesion(): SesionGuardada | null {

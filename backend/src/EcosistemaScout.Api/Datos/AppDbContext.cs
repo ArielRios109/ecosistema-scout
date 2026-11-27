@@ -3,6 +3,7 @@ using EcosistemaScout.Api.Modulos.Finanzas;
 using EcosistemaScout.Api.Modulos.Inventario;
 using EcosistemaScout.Api.Modulos.Miembros;
 using EcosistemaScout.Api.Modulos.Portal;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -16,8 +17,11 @@ namespace EcosistemaScout.Api.Datos;
 /// </summary>
 public class AppDbContext(DbContextOptions<AppDbContext> options)
     : IdentityDbContext<Usuario, Rol, long, IdentityUserClaim<long>, UsuarioRol,
-        IdentityUserLogin<long>, IdentityRoleClaim<long>, IdentityUserToken<long>>(options)
+        IdentityUserLogin<long>, IdentityRoleClaim<long>, IdentityUserToken<long>>(options), IDataProtectionKeyContext
 {
+    /// <summary>Llaves de ASP.NET Data Protection (cifrado de la ficha médica), guardadas en la base de datos.</summary>
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
+
     // Módulo Base (usuarios, roles y usuario_rol vienen de IdentityDbContext)
     public DbSet<ConfiguracionGrupo> ConfiguracionGrupo => Set<ConfiguracionGrupo>();
     public DbSet<Bitacora> Bitacora => Set<Bitacora>();

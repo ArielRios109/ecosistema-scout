@@ -8,12 +8,16 @@ using Microsoft.AspNetCore.Mvc;
 namespace EcosistemaScout.Api.Modulos.Base.Autenticacion;
 
 public record SolicitudLogin(
-    [Required(ErrorMessage = "Ingresa tu correo.")][EmailAddress(ErrorMessage = "El correo no es válido.")] string Email,
-    [Required(ErrorMessage = "Ingresa tu contraseña.")] string Password);
+    [Required(ErrorMessage = "Ingresa tu correo.")][EmailAddress(ErrorMessage = "El correo no es válido.")][MaxLength(120, ErrorMessage = "El correo admite hasta 120 caracteres.")] string Email,
+    [Required(ErrorMessage = "Ingresa tu contraseña.")][MaxLength(100, ErrorMessage = "La contraseña admite hasta 100 caracteres.")] string Password);
 
-public record UsuarioActual(long Id, string Nombre, string Email, IReadOnlyList<string> Roles);
+public record UsuarioActual(long Id, string Nombre, string Email, IReadOnlyList<string> Roles, bool DebeCambiarPassword = false);
 
 public record RespuestaLogin(string Token, DateTime Expira, UsuarioActual Usuario);
+
+public record SolicitudCambiarPassword(
+    [Required(ErrorMessage = "Ingresa tu contraseña actual.")][MaxLength(100, ErrorMessage = "La contraseña admite hasta 100 caracteres.")] string PasswordActual,
+    [Required(ErrorMessage = "Ingresa la nueva contraseña.")][MinLength(8, ErrorMessage = "La nueva contraseña debe tener al menos 8 caracteres.")][MaxLength(100, ErrorMessage = "La nueva contraseña admite hasta 100 caracteres.")] string PasswordNueva);
 
 /// <summary>Inicio de sesión con correo y contraseña; entrega un token JWT.</summary>
 [ApiController]
@@ -54,13 +58,54 @@ public class AuthController(
         var roles = (await usuarios.GetRolesAsync(usuario)).ToList();
         var (token, expira) = tokens.Generar(usuario, roles);
 
-        var datos = new RespuestaLogin(token, expira, new UsuarioActual(usuario.Id, usuario.Nombre, usuario.Email!, roles));
-        return Ok(ResponseData.Ok(datos, $"Bienvenido, {usuario.Nombre}."));
+        var datos = new RespuestaLogin(token, expira, Actual(usuario, roles));
+        var mensaje = usuario.DebeCambiarPassword
+            ? "Ingresaste con una contraseña temporal: crea tu propia contraseña para continuar."
+            : $"Bienvenido, {usuario.Nombre}.";
+        return Ok(ResponseData.Ok(datos, mensaje));
+    }
+
+    /// <summary>
+    /// Cambia la contraseña del usuario actual (obligatorio tras ingresar con una contraseña temporal)
+    /// y entrega un token nuevo, ya sin la marca de cambio pendiente.
+    /// </summary>
+    [HttpPost("cambiar-password")]
+    [Authorize]
+    [PermitirConCambioPendiente]
+    [ProducesResponseType<ResponseData<RespuestaLogin>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ResponseData<object>>(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> CambiarPassword(SolicitudCambiarPassword solicitud)
+    {
+        var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var usuario = id is null ? null : await usuarios.FindByIdAsync(id);
+        if (usuario is null || !usuario.Activo)
+        {
+            return Unauthorized(ResponseData.Error("Tu sesión ya no es válida. Vuelve a iniciar sesión."));
+        }
+        if (solicitud.PasswordActual == solicitud.PasswordNueva)
+        {
+            return BadRequest(ResponseData.Error("La nueva contraseña debe ser distinta de la actual."));
+        }
+
+        var resultado = await usuarios.ChangePasswordAsync(usuario, solicitud.PasswordActual, solicitud.PasswordNueva);
+        if (!resultado.Succeeded)
+        {
+            return BadRequest(ResponseData.Error("No se pudo cambiar la contraseña.",
+                resultado.Errors.Select(e => e.Description).ToList()));
+        }
+
+        usuario.DebeCambiarPassword = false;
+        await usuarios.UpdateAsync(usuario);
+
+        var roles = (await usuarios.GetRolesAsync(usuario)).ToList();
+        var (token, expira) = tokens.Generar(usuario, roles);
+        return Ok(ResponseData.Ok(new RespuestaLogin(token, expira, Actual(usuario, roles)), "Tu contraseña fue actualizada."));
     }
 
     /// <summary>Datos del usuario que hace la petición (requiere token).</summary>
     [HttpGet("me")]
     [Authorize]
+    [PermitirConCambioPendiente]
     [ProducesResponseType<ResponseData<UsuarioActual>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ResponseData<object>>(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Me()
@@ -73,8 +118,11 @@ public class AuthController(
         }
 
         var roles = (await usuarios.GetRolesAsync(usuario)).ToList();
-        return Ok(ResponseData.Ok(new UsuarioActual(usuario.Id, usuario.Nombre, usuario.Email!, roles)));
+        return Ok(ResponseData.Ok(Actual(usuario, roles)));
     }
+
+    private static UsuarioActual Actual(Usuario usuario, IReadOnlyList<string> roles) =>
+        new(usuario.Id, usuario.Nombre, usuario.Email!, roles, usuario.DebeCambiarPassword);
 
     private UnauthorizedObjectResult CredencialesInvalidas() =>
         Unauthorized(ResponseData.Error("Correo o contraseña incorrectos."));

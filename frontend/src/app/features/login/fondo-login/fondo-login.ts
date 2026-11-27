@@ -1,4 +1,12 @@
-import { afterNextRender, Component, DestroyRef, ElementRef, inject, signal, viewChildren } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  DestroyRef,
+  ElementRef,
+  inject,
+  signal,
+  viewChildren,
+} from '@angular/core';
 
 interface Escena {
   nombre: string;
@@ -11,7 +19,11 @@ interface Escena {
  * Cada uno está recortado a 8 s en dos versiones: 1080p para computador y 720p para celular.
  */
 const ESCENAS: Escena[] = [
-  { nombre: 'torres-del-paine', lugar: 'Torres del Paine', region: 'Región de Magallanes y de la Antártica Chilena' },
+  {
+    nombre: 'torres-del-paine',
+    lugar: 'Torres del Paine',
+    region: 'Región de Magallanes y de la Antártica Chilena',
+  },
   { nombre: 'atacama', lugar: 'Desierto de Atacama', region: 'Región de Antofagasta' },
   { nombre: 'volcan-osorno', lugar: 'Volcán Osorno', region: 'Región de Los Lagos' },
   { nombre: 'costa-algarrobo', lugar: 'Costa de Algarrobo', region: 'Región de Valparaíso' },
@@ -53,9 +65,11 @@ export class FondoLogin {
     const destroyRef = inject(DestroyRef);
 
     afterNextRender(() => {
-      const conexion = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } })
-        .connection;
-      const conexionLenta = !!conexion?.saveData || ['slow-2g', '2g'].includes(conexion?.effectiveType ?? '');
+      const conexion = (
+        navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }
+      ).connection;
+      const conexionLenta =
+        !!conexion?.saveData || ['slow-2g', '2g'].includes(conexion?.effectiveType ?? '');
       this.sufijo = matchMedia('(max-width: 767px)').matches ? '-720' : '';
       this.conVideo.set(!conexionLenta);
 

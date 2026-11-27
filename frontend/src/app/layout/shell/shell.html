@@ -9,7 +9,12 @@
   <span class="flex-1"></span>
 
   @if (auth.usuario(); as usuario) {
-    <button mat-button class="boton-usuario" [matMenuTriggerFor]="menuUsuario" aria-label="Opciones de la cuenta">
+    <button
+      mat-button
+      class="boton-usuario"
+      [matMenuTriggerFor]="menuUsuario"
+      aria-label="Opciones de la cuenta"
+    >
       <mat-icon>account_circle</mat-icon>
       <span class="identidad">
         <span class="nombre-usuario">{{ usuario.nombre }}</span>
@@ -21,6 +26,10 @@
         <span>{{ usuario.email }}</span>
         <small>{{ rolesLegibles() }}</small>
       </div>
+      <a mat-menu-item routerLink="/cambiar-password">
+        <mat-icon>key</mat-icon>
+        <span>Cambiar mi contraseña</span>
+      </a>
       <button mat-menu-item (click)="auth.logout()">
         <mat-icon>logout</mat-icon>
         <span>Cerrar sesión</span>

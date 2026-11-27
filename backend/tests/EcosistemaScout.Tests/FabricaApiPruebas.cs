@@ -38,7 +38,9 @@ public class FabricaApiPruebas : WebApplicationFactory<Program>
                 services.Remove(registro);
             }
 
-            services.AddDbContext<AppDbContext>(o => o.UseInMemoryDatabase(_nombreBase));
+            services.AddDbContext<AppDbContext>((sp, o) => o
+                .UseInMemoryDatabase(_nombreBase)
+                .AddInterceptors(sp.GetRequiredService<InterceptorBitacora>()));
         });
     }
 }
