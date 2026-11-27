@@ -130,6 +130,15 @@ El frontend oculta los menús según el rol (`core/auth/permisos.ts`), pero la s
 | POST | `/api/base/usuarios/{id}/restablecer-password` | administrador | Genera una nueva contraseña temporal |
 | GET | `/api/base/roles` | administrador | Roles disponibles |
 
+### Reglas del PGS que valida la API
+
+| Regla | Respuesta |
+|---|---|
+| Máximo 32 beneficiarios activos por unidad | 409 al inscribir, cambiar de unidad o reingresar si la unidad está completa |
+| Subgrupo según la rama: seisena (máx. 6) en golondrinas y lobatos, patrulla (máx. 8) en guías y scouts, equipo en pioneros y comunidad en caminantes (sin máximo) | 409 si el subgrupo está completo; `UnidadDto.subgrupo` informa nombre y máximo |
+| Desde los 21 años no se puede participar | 400 al inscribir, editar (si está activo) o reingresar |
+| Aviso de egreso desde los 18 y ficha médica con más de 3 meses sin cambios | Campos `avisoEdad` y `estadoFicha` en beneficiarios, y `desactualizada` en la ficha |
+
 ### Miembros: unidades y patrullas
 
 | Método | Ruta | Roles | Descripción |
