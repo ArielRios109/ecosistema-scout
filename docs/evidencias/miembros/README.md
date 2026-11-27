@@ -22,7 +22,7 @@ Capturas tomadas el 27-11-2026 con el sistema corriendo en Docker (`docker compo
 | `16-dirigente-unidades.png` | El dirigente ve las unidades y agrega patrullas, pero no crea unidades |
 | `17-celular-beneficiarios.png` | Listado en celular, en tarjetas |
 | `18-celular-ficha.png` | Ficha del beneficiario en celular |
-| `19-pruebas-backend.png` | 96 pruebas xUnit correctas |
+| `19-pruebas-backend.png` | 98 pruebas xUnit correctas |
 | `20-pruebas-frontend.png` | 32 pruebas Vitest correctas |
 | `21-usuarios-listado.png` | Administración de usuarios: búsqueda, filtros y acciones |
 | `22-usuario-nuevo.png` | Creación de un usuario con contraseña temporal |
