@@ -11,27 +11,27 @@ public class AutorizacionTests(FabricaApiPruebas fabrica) : IClassFixture<Fabric
 {
     [Theory]
     // Administrador: todos los módulos
-    [InlineData("admin@demo.cl", "miembros", HttpStatusCode.OK)]
+    [InlineData("admin@demo.cl", "miembros/unidades", HttpStatusCode.OK)]
     [InlineData("admin@demo.cl", "inventario", HttpStatusCode.OK)]
     [InlineData("admin@demo.cl", "finanzas", HttpStatusCode.OK)]
     [InlineData("admin@demo.cl", "portal", HttpStatusCode.OK)]
     // Tesorería: finanzas, portal e inventario
-    [InlineData("tesoreria@demo.cl", "miembros", HttpStatusCode.Forbidden)]
+    [InlineData("tesoreria@demo.cl", "miembros/unidades", HttpStatusCode.Forbidden)]
     [InlineData("tesoreria@demo.cl", "inventario", HttpStatusCode.OK)]
     [InlineData("tesoreria@demo.cl", "finanzas", HttpStatusCode.OK)]
     [InlineData("tesoreria@demo.cl", "portal", HttpStatusCode.OK)]
     // Dirigente: miembros e inventario
-    [InlineData("dirigente@demo.cl", "miembros", HttpStatusCode.OK)]
+    [InlineData("dirigente@demo.cl", "miembros/unidades", HttpStatusCode.OK)]
     [InlineData("dirigente@demo.cl", "inventario", HttpStatusCode.OK)]
     [InlineData("dirigente@demo.cl", "finanzas", HttpStatusCode.Forbidden)]
     [InlineData("dirigente@demo.cl", "portal", HttpStatusCode.Forbidden)]
     // Apoderado: solo portal
-    [InlineData("apoderado@demo.cl", "miembros", HttpStatusCode.Forbidden)]
+    [InlineData("apoderado@demo.cl", "miembros/unidades", HttpStatusCode.Forbidden)]
     [InlineData("apoderado@demo.cl", "inventario", HttpStatusCode.Forbidden)]
     [InlineData("apoderado@demo.cl", "finanzas", HttpStatusCode.Forbidden)]
     [InlineData("apoderado@demo.cl", "portal", HttpStatusCode.OK)]
     // Revisor: finanzas e inventario (solo lectura)
-    [InlineData("revisor@demo.cl", "miembros", HttpStatusCode.Forbidden)]
+    [InlineData("revisor@demo.cl", "miembros/unidades", HttpStatusCode.Forbidden)]
     [InlineData("revisor@demo.cl", "inventario", HttpStatusCode.OK)]
     [InlineData("revisor@demo.cl", "finanzas", HttpStatusCode.OK)]
     [InlineData("revisor@demo.cl", "portal", HttpStatusCode.Forbidden)]
@@ -53,7 +53,7 @@ public class AutorizacionTests(FabricaApiPruebas fabrica) : IClassFixture<Fabric
     }
 
     [Theory]
-    [InlineData("miembros")]
+    [InlineData("miembros/unidades")]
     [InlineData("inventario")]
     [InlineData("finanzas")]
     [InlineData("portal")]
