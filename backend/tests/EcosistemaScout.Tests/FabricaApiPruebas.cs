@@ -24,6 +24,7 @@ public class FabricaApiPruebas : WebApplicationFactory<Program>
         builder.UseSetting("Jwt:Clave", "clave-de-pruebas-de-al-menos-32-caracteres!");
         builder.UseSetting("Seed:UsuariosDemo", "true");
         builder.UseSetting("Seed:PasswordDemo", PasswordDemo);
+        builder.UseSetting("Archivos:Ruta", Path.Combine(Path.GetTempPath(), "tali-pruebas-archivos"));
 
         builder.ConfigureServices(services =>
         {

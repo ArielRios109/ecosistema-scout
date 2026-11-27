@@ -35,6 +35,9 @@ services:
       Jwt__Clave: ${JWT_CLAVE:-clave-solo-para-desarrollo-local-no-usar-en-produccion-2026}
       Seed__UsuariosDemo: ${SEED_USUARIOS_DEMO:-true}
       Seed__PasswordDemo: ${SEED_PASSWORD_DEMO:-TaliDemo2026}
+      Archivos__Ruta: /app/archivos
+    volumes:
+      - archivos:/app/archivos
     ports:
       - "8081:8080"
     depends_on:
@@ -51,3 +54,4 @@ services:
 
 volumes:
   pgdata:
+  archivos:

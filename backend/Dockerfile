@@ -20,6 +20,10 @@ COPY --from=compilacion /app ./
 ENV ASPNETCORE_HTTP_PORTS=8080
 EXPOSE 8080
 
+# Carpeta de archivos subidos (fotos de bienes); en Docker Compose se monta un volumen aquí.
+# Se crea con dueño "app" para que el usuario sin privilegios pueda escribir en ella.
+RUN mkdir -p /app/archivos && chown app:app /app/archivos
+
 # Usuario sin privilegios incluido en la imagen oficial
 USER app
 ENTRYPOINT ["dotnet", "EcosistemaScout.Api.dll"]
