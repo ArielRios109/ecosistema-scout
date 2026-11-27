@@ -73,6 +73,16 @@ public class PrestamosController(AppDbContext db, IUsuarioActual usuarioActual) 
     [Authorize(Policy = Politicas.InventarioEscritura)]
     public async Task<IActionResult> Prestar(long bienId, SolicitudPrestamo solicitud, CancellationToken ct)
     {
+        // Bloquea la fila del bien hasta guardar: si llegan dos préstamos al mismo tiempo (doble clic, dos personas),
+        // el segundo espera y ve lo que ya se prestó, así nunca se presta más de lo que hay.
+        // Las pruebas usan una base en memoria, sin transacciones ni SQL, por eso solo se hace en PostgreSQL.
+        var relacional = db.Database.IsRelational();
+        await using var transaccion = relacional ? await db.Database.BeginTransactionAsync(ct) : null;
+        if (relacional)
+        {
+            await db.Database.ExecuteSqlInterpolatedAsync($"SELECT id FROM bienes WHERE id = {bienId} FOR UPDATE", ct);
+        }
+
         var bien = await db.Bienes.AsNoTracking().FirstOrDefaultAsync(b => b.Id == bienId, ct);
         if (bien is null) return NotFound(ResponseData.Error("No se encontró el bien."));
         if (bien.DadoDeBaja) return Conflict(ResponseData.Error("El bien está dado de baja."));
@@ -88,9 +98,12 @@ public class PrestamosController(AppDbContext db, IUsuarioActual usuarioActual) 
             .Where(p => p.BienId == bienId && p.FechaDevolucion == null).SumAsync(p => p.Cantidad, ct);
         if (solicitud.Cantidad > disponible)
         {
-            return Conflict(ResponseData.Error(disponible == 0
-                ? "No hay unidades disponibles de este bien: todas están prestadas."
-                : $"Solo hay {disponible} disponible(s) para prestar."));
+            return Conflict(ResponseData.Error(disponible switch
+            {
+                <= 0 => "No hay unidades disponibles de este bien: todas están prestadas.",
+                1 => "Solo hay 1 unidad disponible para prestar.",
+                _ => $"Solo hay {disponible} unidades disponibles para prestar.",
+            }));
         }
 
         var prestamo = new Prestamo
@@ -105,6 +118,7 @@ public class PrestamosController(AppDbContext db, IUsuarioActual usuarioActual) 
         };
         db.Prestamos.Add(prestamo);
         await db.SaveChangesAsync(ct);
+        if (transaccion is not null) await transaccion.CommitAsync(ct);
         return Ok(ResponseData.Ok(await UnoAsync(prestamo.Id, ct), "Préstamo registrado."));
     }
 

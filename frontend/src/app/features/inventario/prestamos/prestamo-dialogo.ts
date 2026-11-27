@@ -7,6 +7,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { ErrorStateMatcher } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -55,11 +56,18 @@ function devolucionDespuesDeSalida(grupo: AbstractControl): ValidationErrors | n
             formControlName="cantidad"
             min="1"
             [max]="datos.disponible"
+            [errorStateMatcher]="errorAlEscribir"
           />
-          <mat-hint
-            >{{ datos.disponible }} disponible{{ datos.disponible === 1 ? '' : 's' }}</mat-hint
-          >
-          <mat-error>Entre 1 y {{ datos.disponible }}.</mat-error>
+          <mat-hint>De {{ datos.disponible }} disponible{{ datos.disponible === 1 ? '' : 's' }}</mat-hint>
+          @if (formulario.controls.cantidad.hasError('max')) {
+            <mat-error>
+              Solo hay {{ datos.disponible }} unidad{{ datos.disponible === 1 ? '' : 'es' }} disponible{{
+                datos.disponible === 1 ? '' : 's'
+              }}.
+            </mat-error>
+          } @else {
+            <mat-error>Ingresa una cantidad de al menos 1.</mat-error>
+          }
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Destinatario</mat-label>
@@ -142,6 +150,10 @@ export class PrestamoDialogo {
   protected readonly datos = inject<DatosPrestamoDialogo>(MAT_DIALOG_DATA);
   private readonly ref = inject(MatDialogRef<PrestamoDialogo, SolicitudPrestamo>);
   protected readonly hoy = new Date();
+  /** Muestra el error de cantidad mientras se escribe, sin esperar a salir del campo. */
+  protected readonly errorAlEscribir: ErrorStateMatcher = {
+    isErrorState: (control) => !!control && control.invalid && (control.dirty || control.touched),
+  };
 
   protected readonly formulario = inject(FormBuilder).group(
     {

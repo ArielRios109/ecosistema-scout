@@ -34,6 +34,7 @@ public class InventarioTests(FabricaApiPruebas fabrica) : IClassFixture<FabricaA
         var detalle = (await (await cliente.GetAsync($"/api/inventario/bienes/{bien.Id}")).LeerAsync<BienDetalle>()).Datos!;
 
         Assert.Equal(HttpStatusCode.Conflict, demasiado.StatusCode);
+        Assert.Equal("Solo hay 1 unidad disponible para prestar.", (await demasiado.LeerAsync<object>()).Mensaje);
         Assert.Equal(1, detalle.Cantidad);
         Assert.Equal(1, detalle.Disponible);
     }
