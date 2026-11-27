@@ -33,6 +33,17 @@ body {
   margin: 0;
   height: 100%;
 }
+// Tipografía de marca: Nunito solo para el nombre "Talí" y su subtítulo (el resto de la app usa Roboto).
+.fuente-marca {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+}
+
+.fuente-marca-sub {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+}
+
 app-root {
   display: block;
   height: 100%;

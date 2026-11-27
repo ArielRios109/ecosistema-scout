@@ -16,7 +16,9 @@ Si una regla cambia, se actualiza este archivo en el mismo pull request.
 
 ## 2. Identidad visual
 
-**Concepto del logo:** un pañolín scout verde con franjas doradas y un pasador de cuero; las puntas cruzadas con el pasador forman la **T** de Talí. No usa emblemas oficiales de la AGSCh.
+**Concepto del logo:** un libro abierto (el *talí*, la bitácora del grupo) con un pañolín scout verde sobre su centro, con franjas doradas y pasador de cuero, y la silueta de la cordillera detrás. Sin destellos ni efectos. No usa emblemas oficiales de la AGSCh.
+
+**Tipografía de marca:** Nunito (paquete `@fontsource/nunito`), solo para el nombre **Talí** (peso 800, clase `fuente-marca`) y el subtítulo "Ecosistema Digital Scout" (peso 700, clase `fuente-marca-sub`). El resto de la interfaz usa Roboto, la tipografía de Material 3.
 
 **Colores de marca:**
 
@@ -33,8 +35,13 @@ Si una regla cambia, se actualiza este archivo en el mismo pull request.
 |---|---|
 | `tali-logo.svg` | Sobre fondos claros: pantalla de inicio de sesión, barra superior (clara), documentos a color |
 | `tali-logo-blanco.svg` | Sobre fondos verdes u oscuros |
-| `tali-icono.svg` (+ `favicon-32/192/512.png`) | Ícono de la pestaña del navegador y del celular |
 | `tali-logo-una-tinta.svg` | Documentos impresos en blanco y negro, sellos |
+| `tali-icono.svg` | Ícono simplificado (libro cerrado verde con el pañolín en contorno blanco): pestaña del navegador |
+| `icono-16/32.png` | Favicon de respaldo para navegadores sin soporte de SVG |
+| `icono-180.png` | Ícono de iPhone (apple-touch-icon) |
+| `icono-192/512.png`, `icono-maskable-512.png` (`tali-icono-maskable.svg`) | Ícono de la app instalada (`public/manifest.webmanifest`) |
+
+Los SVG del logo se generan con un script (fuera del repositorio) y los PNG se exportan desde esos SVG; si cambia el diseño, se regeneran todos juntos.
 
 En pantalla el nombre siempre se escribe **Talí** (con tilde); en código y URLs, `tali`.
 
