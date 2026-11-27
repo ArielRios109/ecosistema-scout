@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -29,7 +28,6 @@ export class Login {
   private readonly router = inject(Router);
 
   protected readonly cargando = signal(false);
-  protected readonly error = signal<string | null>(null);
   protected readonly verPassword = signal(false);
 
   protected readonly formulario = inject(FormBuilder).nonNullable.group({
@@ -44,19 +42,13 @@ export class Login {
     }
 
     this.cargando.set(true);
-    this.error.set(null);
     const { email, password } = this.formulario.getRawValue();
 
+    // Los errores (credenciales incorrectas, cuenta bloqueada, sin conexión) los muestra
+    // el interceptor con el snackbar común; aquí solo se detiene el indicador de carga.
     this.auth.login(email, password).subscribe({
       next: () => this.router.navigate(['/']),
-      error: (e: HttpErrorResponse) => {
-        this.cargando.set(false);
-        this.error.set(
-          e.status === 401
-            ? (e.error?.title ?? 'Correo o contraseña incorrectos.')
-            : 'No se pudo conectar con el servidor. Intenta nuevamente.',
-        );
-      },
+      error: () => this.cargando.set(false),
     });
   }
 }

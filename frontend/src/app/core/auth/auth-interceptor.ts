@@ -1,11 +1,23 @@
-import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
+import { HttpContextToken, HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
+import { mensajeError } from '../notificaciones/mensaje-error';
+import { Notificaciones } from '../notificaciones/notificaciones';
 import { Auth } from './auth';
 
-/** Agrega el token JWT a las peticiones a /api y cierra la sesión si el servidor responde 401. */
+/**
+ * Permite que una petición maneje sus propios errores sin el snackbar automático.
+ * Uso: http.get(url, { context: new HttpContext().set(SIN_NOTIFICACION_ERROR, true) })
+ */
+export const SIN_NOTIFICACION_ERROR = new HttpContextToken<boolean>(() => false);
+
+/**
+ * Agrega el token JWT a las peticiones a /api, muestra los errores con el snackbar
+ * común y cierra la sesión si el servidor responde 401.
+ */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(Auth);
+  const notificaciones = inject(Notificaciones);
   const token = auth.token;
 
   const peticion =
@@ -15,9 +27,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(peticion).pipe(
     catchError((error: unknown) => {
-      const esLogin = req.url.endsWith('/api/auth/login');
-      if (error instanceof HttpErrorResponse && error.status === 401 && token && !esLogin) {
-        auth.logout();
+      if (error instanceof HttpErrorResponse) {
+        if (!req.context.get(SIN_NOTIFICACION_ERROR)) {
+          notificaciones.error(mensajeError(error));
+        }
+        const esLogin = req.url.endsWith('/api/auth/login');
+        if (error.status === 401 && token && !esLogin) {
+          auth.logout();
+        }
       }
       return throwError(() => error);
     }),

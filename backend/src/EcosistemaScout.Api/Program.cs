@@ -3,6 +3,7 @@ using EcosistemaScout.Api.Configuracion;
 using EcosistemaScout.Api.Datos;
 using EcosistemaScout.Api.Modulos.Base;
 using EcosistemaScout.Api.Modulos.Base.Autenticacion;
+using EcosistemaScout.Api.Modulos.Base.Autorizacion;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -64,7 +65,7 @@ builder.Services
             ClockSkew = TimeSpan.FromMinutes(1),
         };
     });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(Politicas.Registrar);
 
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<ServicioTokens>();

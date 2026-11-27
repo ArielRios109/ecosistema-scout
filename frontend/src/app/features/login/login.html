@@ -45,10 +45,6 @@
           }
         </mat-form-field>
 
-        @if (error()) {
-          <p class="error" role="alert">{{ error() }}</p>
-        }
-
         <button mat-flat-button type="submit" [disabled]="cargando()">Ingresar</button>
       </form>
     </mat-card-content>

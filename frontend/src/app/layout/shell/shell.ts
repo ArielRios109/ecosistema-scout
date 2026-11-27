@@ -10,12 +10,23 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { map } from 'rxjs';
 import { Auth } from '../../core/auth/auth';
+import { Modulo, NOMBRE_ROL, puedeVerModulo } from '../../core/auth/permisos';
 
 interface EnlaceMenu {
   ruta: string;
   etiqueta: string;
   icono: string;
+  /** Módulo protegido por rol; si no se indica, lo ven todos. */
+  modulo?: Modulo;
 }
+
+const ENLACES: EnlaceMenu[] = [
+  { ruta: '/inicio', etiqueta: 'Inicio', icono: 'home' },
+  { ruta: '/miembros', etiqueta: 'Miembros', icono: 'groups', modulo: 'miembros' },
+  { ruta: '/inventario', etiqueta: 'Inventario', icono: 'inventory_2', modulo: 'inventario' },
+  { ruta: '/finanzas', etiqueta: 'Finanzas', icono: 'account_balance_wallet', modulo: 'finanzas' },
+  { ruta: '/portal', etiqueta: 'Portal de pagos', icono: 'payments', modulo: 'portal' },
+];
 
 /** Estructura común de la aplicación: barra superior, menú lateral con los módulos y área de contenido. */
 @Component({
@@ -46,11 +57,14 @@ export class Shell {
 
   protected readonly modoMenu = computed(() => (this.esMovil() ? 'over' : 'side'));
 
-  protected readonly enlaces: EnlaceMenu[] = [
-    { ruta: '/inicio', etiqueta: 'Inicio', icono: 'home' },
-    { ruta: '/miembros', etiqueta: 'Miembros', icono: 'groups' },
-    { ruta: '/inventario', etiqueta: 'Inventario', icono: 'inventory_2' },
-    { ruta: '/finanzas', etiqueta: 'Finanzas', icono: 'account_balance_wallet' },
-    { ruta: '/portal', etiqueta: 'Portal de pagos', icono: 'payments' },
-  ];
+  /** Solo los módulos que el rol del usuario puede usar. */
+  protected readonly enlaces = computed(() => {
+    const roles = this.auth.usuario()?.roles ?? [];
+    return ENLACES.filter((e) => !e.modulo || puedeVerModulo(roles, e.modulo));
+  });
+
+  /** Roles del usuario con nombre legible, por ejemplo "Tesorería". */
+  protected readonly rolesLegibles = computed(() =>
+    (this.auth.usuario()?.roles ?? []).map((r) => NOMBRE_ROL[r] ?? r).join(', '),
+  );
 }

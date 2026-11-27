@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, invitadoGuard } from './core/auth/auth-guard';
+import { authGuard, invitadoGuard, rolGuard } from './core/auth/auth-guard';
 
 export const routes: Routes = [
   {
@@ -21,21 +21,29 @@ export const routes: Routes = [
       },
       {
         path: 'miembros',
+        canActivate: [rolGuard],
+        data: { modulo: 'miembros' },
         loadChildren: () => import('./features/miembros/miembros.routes').then((m) => m.MIEMBROS_ROUTES),
         title: 'Miembros · Ecosistema Scout',
       },
       {
         path: 'inventario',
+        canActivate: [rolGuard],
+        data: { modulo: 'inventario' },
         loadChildren: () => import('./features/inventario/inventario.routes').then((m) => m.INVENTARIO_ROUTES),
         title: 'Inventario · Ecosistema Scout',
       },
       {
         path: 'finanzas',
+        canActivate: [rolGuard],
+        data: { modulo: 'finanzas' },
         loadChildren: () => import('./features/finanzas/finanzas.routes').then((m) => m.FINANZAS_ROUTES),
         title: 'Finanzas · Ecosistema Scout',
       },
       {
         path: 'portal',
+        canActivate: [rolGuard],
+        data: { modulo: 'portal' },
         loadChildren: () => import('./features/portal/portal.routes').then((m) => m.PORTAL_ROUTES),
         title: 'Portal de pagos · Ecosistema Scout',
       },
