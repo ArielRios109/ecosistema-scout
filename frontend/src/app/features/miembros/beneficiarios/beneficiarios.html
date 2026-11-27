@@ -58,7 +58,7 @@
             <ng-container *ngTemplateOutlet="menuAcciones; context: { $implicit: b }" />
           </div>
         </mat-card-header>
-        <mat-card-content class="flex items-center justify-between mt-2">
+        <mat-card-content class="flex items-center justify-between gap-2 mt-2">
           <span class="texto-secundario">{{ b.unidad }}{{ b.patrulla ? ' · ' + b.patrulla : '' }}</span>
           <span class="estado" [class.retirado]="b.estado === 'retirado'">{{ b.estado === 'activo' ? 'Activo' : 'Retirado' }}</span>
         </mat-card-content>
