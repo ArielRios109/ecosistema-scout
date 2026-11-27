@@ -32,6 +32,17 @@ public static class ManejoErrores
         {
             opciones.InvalidModelStateResponseFactory = contexto =>
             {
+                // JSON mal formado o con un tipo incorrecto: el mensaje original de .NET está en inglés y expone
+                // nombres internos de clases, así que se reemplaza por uno general.
+                var jsonInvalido = contexto.ModelState.Keys.Any(k => k.StartsWith('$'))
+                    || contexto.ModelState.Values.SelectMany(v => v.Errors).Any(e => e.Exception is not null);
+                if (jsonInvalido)
+                {
+                    return new BadRequestObjectResult(ResponseData.Error(
+                        "Los datos enviados no tienen un formato válido.",
+                        ["Revisa que las fechas, números y textos tengan el formato correcto."]));
+                }
+
                 var errores = contexto.ModelState.Values
                     .SelectMany(v => v.Errors)
                     .Select(e => string.IsNullOrWhiteSpace(e.ErrorMessage) ? "Valor no válido." : e.ErrorMessage)
