@@ -22,6 +22,8 @@ public record BienResumen(
     long Id, string Codigo, string Nombre, long CategoriaId, string Categoria, int Cantidad, int Disponible,
     string Estado, string? Ubicacion, string? Responsable, bool DadoDeBaja, bool TieneFoto, bool TienePrestamoVencido);
 
+public record ResponsableDto(long Id, string Nombre);
+
 public record BajaDto(string Motivo, DateOnly Fecha, string? Detalle, string? RegistradaPor);
 
 public record BienDetalle(
@@ -154,6 +156,17 @@ public class BienesController(AppDbContext db, IUsuarioActual usuarioActual, IAl
         await db.SaveChangesAsync(ct);
         return Ok(ResponseData.Ok(await DetalleAsync(id, ct), "Bien dado de baja."));
     }
+
+    /// <summary>
+    /// Voluntarios que pueden quedar como responsables de un bien. Solo id y nombre: tesorería administra
+    /// el inventario pero no tiene acceso a los datos de Miembros.
+    /// </summary>
+    [HttpGet("~/api/inventario/responsables")]
+    public async Task<ResponseData<List<ResponsableDto>>> Responsables(CancellationToken ct) =>
+        ResponseData.Ok(await db.Voluntarios.AsNoTracking()
+            .OrderBy(v => v.Nombres).ThenBy(v => v.Apellidos)
+            .Select(v => new ResponsableDto(v.Id, v.Nombres + " " + v.Apellidos))
+            .ToListAsync(ct));
 
     // ----- Foto -----
 
