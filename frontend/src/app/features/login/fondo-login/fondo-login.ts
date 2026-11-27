@@ -3,6 +3,7 @@ import { afterNextRender, Component, DestroyRef, ElementRef, inject, signal, vie
 interface Escena {
   nombre: string;
   lugar: string;
+  region: string;
 }
 
 /**
@@ -10,10 +11,10 @@ interface Escena {
  * Cada uno está recortado a 8 s en dos versiones: 1080p para computador y 720p para celular.
  */
 const ESCENAS: Escena[] = [
-  { nombre: 'torres-del-paine', lugar: 'Torres del Paine' },
-  { nombre: 'atacama', lugar: 'Desierto de Atacama' },
-  { nombre: 'volcan-osorno', lugar: 'Volcán Osorno' },
-  { nombre: 'costa-algarrobo', lugar: 'Costa de Algarrobo' },
+  { nombre: 'torres-del-paine', lugar: 'Torres del Paine', region: 'Región de Magallanes y de la Antártica Chilena' },
+  { nombre: 'atacama', lugar: 'Desierto de Atacama', region: 'Región de Antofagasta' },
+  { nombre: 'volcan-osorno', lugar: 'Volcán Osorno', region: 'Región de Los Lagos' },
+  { nombre: 'costa-algarrobo', lugar: 'Costa de Algarrobo', region: 'Región de Valparaíso' },
 ];
 
 const CARPETA = 'fondos/login/';

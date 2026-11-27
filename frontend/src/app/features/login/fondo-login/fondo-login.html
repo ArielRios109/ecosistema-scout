@@ -12,4 +12,12 @@
     </div>
   }
   <div class="capa-oscura"></div>
+
+  <!-- Nombre del lugar y región: decorativo, semitransparente, cambia junto con el video -->
+  @for (escena of escenas; track escena.nombre; let i = $index) {
+    <p class="lugar" [class.activa]="i === actual()">
+      <span class="lugar-nombre">{{ escena.lugar }}</span>
+      <span class="lugar-region">{{ escena.region }}</span>
+    </p>
+  }
 </div>
