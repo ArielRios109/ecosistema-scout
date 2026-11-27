@@ -15,6 +15,7 @@ const VACIA: FichaMedica = {
   necesidadesEmocionales: null,
   actualizadaEl: null,
   actualizadaPor: null,
+  desactualizada: false,
 };
 
 async function mostrar(ficha: FichaMedica) {

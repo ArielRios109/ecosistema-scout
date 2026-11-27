@@ -8,15 +8,38 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EcosistemaScout.Api.Modulos.Miembros.Unidades;
 
-/// <summary>Ramas válidas (igual que la restricción CHECK de la tabla unidades).</summary>
+/// <summary>Cómo se llaman los subgrupos de una rama y cuántos integrantes admite cada uno (null = sin límite).</summary>
+public record TipoSubgrupo(string Nombre, string Plural, int? Maximo);
+
+/// <summary>Ramas válidas (igual que la restricción CHECK de la tabla unidades) y sus reglas según el PGS.</summary>
 public static class Ramas
 {
-    public static readonly IReadOnlyList<string> Todas = ["golondrinas", "lobatos", "guias", "scouts", "pioneros", "caminantes"];
+    /// <summary>Máximo de beneficiarios activos por unidad.</summary>
+    public const int MaximoPorUnidad = 32;
+
+    private static readonly Dictionary<string, TipoSubgrupo> Subgrupos = new()
+    {
+        ["golondrinas"] = new("seisena", "seisenas", 6),
+        ["lobatos"] = new("seisena", "seisenas", 6),
+        ["guias"] = new("patrulla", "patrullas", 8),
+        ["scouts"] = new("patrulla", "patrullas", 8),
+        ["pioneros"] = new("equipo", "equipos", null),
+        ["caminantes"] = new("comunidad", "comunidades", null),
+    };
+
+    public static IReadOnlyList<string> Todas { get; } = [.. Subgrupos.Keys];
+
+    public static TipoSubgrupo Subgrupo(string rama) => Subgrupos.GetValueOrDefault(rama) ?? new("patrulla", "patrullas", null);
 }
 
 public record PatrullaDto(long Id, long UnidadId, string Nombre, bool Activa, int Beneficiarios);
 
-public record UnidadDto(long Id, string Nombre, string Rama, bool Activa, int Beneficiarios, IReadOnlyList<PatrullaDto> Patrullas);
+public record UnidadDto(long Id, string Nombre, string Rama, bool Activa, int Beneficiarios, IReadOnlyList<PatrullaDto> Patrullas)
+{
+    // Reglas de la rama, para que el frontend muestre los cupos sin repetirlas.
+    public int Maximo => Ramas.MaximoPorUnidad;
+    public TipoSubgrupo Subgrupo => Ramas.Subgrupo(Rama);
+}
 
 public record SolicitudUnidad(
     [Required(ErrorMessage = "Ingresa el nombre de la unidad.")][MaxLength(80, ErrorMessage = "El nombre admite hasta 80 caracteres.")] string Nombre,
@@ -140,16 +163,18 @@ public class UnidadesController(AppDbContext db) : ControllerBase
     [HttpPost("unidades/{unidadId:long}/patrullas")]
     public async Task<IActionResult> CrearPatrulla(long unidadId, SolicitudPatrulla solicitud, CancellationToken ct)
     {
-        if (!await db.Unidades.AnyAsync(u => u.Id == unidadId, ct)) return UnidadNoEncontrada();
+        var rama = await db.Unidades.Where(u => u.Id == unidadId).Select(u => u.Rama).FirstOrDefaultAsync(ct);
+        if (rama is null) return UnidadNoEncontrada();
+        var subgrupo = Ramas.Subgrupo(rama);
         if (await NombrePatrullaUsadoAsync(unidadId, solicitud.Nombre, null, ct))
         {
-            return Conflict(ResponseData.Error("Ya existe una patrulla con ese nombre en la unidad."));
+            return Conflict(ResponseData.Error($"Ya existe una {subgrupo.Nombre} con ese nombre en la unidad."));
         }
 
         var patrulla = new Patrulla { UnidadId = unidadId, Nombre = solicitud.Nombre.Trim() };
         db.Patrullas.Add(patrulla);
         await db.SaveChangesAsync(ct);
-        return Ok(ResponseData.Ok(await PatrullaDtoAsync(patrulla.Id, ct), "Patrulla creada."));
+        return Ok(ResponseData.Ok(await PatrullaDtoAsync(patrulla.Id, ct), $"{char.ToUpper(subgrupo.Nombre[0])}{subgrupo.Nombre[1..]} creada."));
     }
 
     [HttpPut("patrullas/{id:long}")]

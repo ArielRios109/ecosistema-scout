@@ -49,23 +49,24 @@
       <mat-card-content>
         <p class="flex items-center gap-1 texto-secundario mt-2">
           <mat-icon class="icono-chico">groups</mat-icon>
-          {{ unidad.beneficiarios }} beneficiario{{
-            unidad.beneficiarios === 1 ? '' : 's'
-          }}
-          activo{{ unidad.beneficiarios === 1 ? '' : 's' }}
+          {{ unidad.beneficiarios }}/{{ unidad.maximo }} beneficiarios activos
+          @if (unidad.beneficiarios >= unidad.maximo) {
+            <span class="completa">· Completa</span>
+          }
         </p>
 
-        <h3 class="subtitulo m-0 mt-3 mb-2">Patrullas</h3>
+        <h3 class="subtitulo m-0 mt-3 mb-2">{{ capitalizar(unidad.subgrupo.plural) }}</h3>
         @if (unidad.patrullas.length === 0) {
-          <p class="texto-secundario m-0">Sin patrullas.</p>
+          <p class="texto-secundario m-0">Sin {{ unidad.subgrupo.plural }}.</p>
         } @else {
-          <mat-chip-set aria-label="Patrullas">
+          <mat-chip-set [attr.aria-label]="unidad.subgrupo.plural">
             @for (patrulla of unidad.patrullas; track patrulla.id) {
               <mat-chip [class.inactiva]="!patrulla.activa" [matMenuTriggerFor]="menuPatrulla">
-                {{ patrulla.nombre }} · {{ patrulla.beneficiarios }}
+                {{ patrulla.nombre }} · {{ patrulla.beneficiarios
+                }}{{ unidad.subgrupo.maximo ? '/' + unidad.subgrupo.maximo : '' }}
               </mat-chip>
               <mat-menu #menuPatrulla="matMenu">
-                <button mat-menu-item (click)="editarPatrulla(patrulla)">
+                <button mat-menu-item (click)="editarPatrulla(patrulla, unidad)">
                   <mat-icon>edit</mat-icon>
                   <span>Renombrar</span>
                 </button>
@@ -83,7 +84,7 @@
         <mat-card-actions>
           <button mat-button (click)="nuevaPatrulla(unidad)">
             <mat-icon>add</mat-icon>
-            Agregar patrulla
+            Agregar {{ unidad.subgrupo.nombre }}
           </button>
         </mat-card-actions>
       }

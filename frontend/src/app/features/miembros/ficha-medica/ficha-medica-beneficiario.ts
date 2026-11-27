@@ -86,6 +86,12 @@ export const CAMPOS_FICHA: {
         }
       </div>
 
+      @if (f.desactualizada && !editando()) {
+        <p class="alerta flex items-center gap-2 m-0 mb-3 p-3">
+          <mat-icon>update</mat-icon>
+          Pasaron más de 3 meses desde el último cambio: conviene revisarla con la familia.
+        </p>
+      }
       @if (editando()) {
         <form [formGroup]="formulario" class="formulario" (ngSubmit)="guardar()">
           <div class="flex gap-2 fila">
@@ -155,6 +161,11 @@ export const CAMPOS_FICHA: {
       width: 18px;
       height: 18px;
       font-size: 18px;
+    }
+    .alerta {
+      border-radius: 12px;
+      background-color: var(--mat-sys-tertiary-container);
+      color: var(--mat-sys-on-tertiary-container);
     }
     .formulario {
       max-width: 760px;

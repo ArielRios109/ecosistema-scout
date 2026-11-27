@@ -238,6 +238,14 @@ public class DatosDemoMiembros(AppDbContext db, CifradoFichaMedica cifrado, ILog
         }
 
         await db.SaveChangesAsync();
+
+        // Dos fichas con su último cambio hace 5 meses, para que la alerta de ficha desactualizada se vea en la demo.
+        // (SaveChanges siempre pone la fecha actual, por eso se ajusta con SQL; las pruebas usan una base en memoria).
+        if (db.Database.IsRelational())
+        {
+            await db.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE fichas_medicas SET updated_at = now() - interval '5 months' WHERE beneficiario_id IN ({beneficiarios[11].Id}, {beneficiarios[13].Id})");
+        }
         log.LogInformation("Datos demo de Miembros cargados: {Unidades} unidades y {Beneficiarios} beneficiarios.",
             unidades.Count, beneficiarios.Count);
     }
