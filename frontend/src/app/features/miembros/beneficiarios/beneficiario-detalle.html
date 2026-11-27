@@ -1,0 +1,107 @@
+<a mat-button routerLink="/miembros/beneficiarios" class="mb-2">
+  <mat-icon>arrow_back</mat-icon>
+  Volver al listado
+</a>
+
+@if (beneficiario(); as b) {
+  <header class="flex items-center justify-between gap-3 mb-3 encabezado">
+    <div class="flex items-center gap-3">
+      <div class="avatar" aria-hidden="true">{{ b.nombres[0] }}{{ b.apellidos[0] }}</div>
+      <div>
+        <h2 class="titulo-grande m-0">{{ b.nombres }} {{ b.apellidos }}</h2>
+        <p class="texto-secundario m-0 mt-1">
+          {{ b.rut }} · {{ b.edad }} años ·
+          <span class="estado" [class.retirado]="b.estado === 'retirado'">{{ b.estado === 'activo' ? 'Activo' : 'Retirado' }}</span>
+        </p>
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <button mat-stroked-button (click)="editar()">
+        <mat-icon>edit</mat-icon>
+        Editar
+      </button>
+      <button mat-stroked-button (click)="cambiarEstado()">
+        <mat-icon>{{ b.estado === 'activo' ? 'logout' : 'replay' }}</mat-icon>
+        {{ b.estado === 'activo' ? 'Retirar' : 'Reingresar' }}
+      </button>
+    </div>
+  </header>
+
+  <mat-tab-group mat-stretch-tabs="false" animationDuration="200ms">
+    <mat-tab label="Datos">
+      <dl class="datos mt-3">
+        <div>
+          <dt>Unidad</dt>
+          <dd>{{ b.unidad }} · {{ etiquetaRama(b.rama) }}</dd>
+        </div>
+        <div>
+          <dt>Patrulla</dt>
+          <dd>{{ b.patrulla ?? 'Sin patrulla' }}</dd>
+        </div>
+        <div>
+          <dt>Fecha de nacimiento</dt>
+          <dd>{{ fecha(b.fechaNacimiento) }}</dd>
+        </div>
+        <div>
+          <dt>Fecha de ingreso</dt>
+          <dd>{{ fecha(b.fechaIngreso) }}</dd>
+        </div>
+        <div>
+          <dt>Dirección</dt>
+          <dd>{{ b.direccion ?? 'No registrada' }}</dd>
+        </div>
+        <div>
+          <dt>Registro institucional</dt>
+          <dd>{{ b.registroInstitucionalAnio ?? 'No registrado' }}</dd>
+        </div>
+      </dl>
+    </mat-tab>
+
+    <mat-tab label="Apoderados">
+      <p class="texto-secundario p-4 texto-centro">Los apoderados se gestionarán aquí.</p>
+    </mat-tab>
+
+    <mat-tab label="Contactos">
+      <p class="texto-secundario p-4 texto-centro">Los contactos de emergencia se gestionarán aquí.</p>
+    </mat-tab>
+
+    <mat-tab label="Ficha médica">
+      <p class="texto-secundario p-4 texto-centro">La ficha médica se gestionará aquí.</p>
+    </mat-tab>
+
+    <mat-tab label="Historial">
+      <ol class="linea-tiempo mt-3">
+        @for (m of historial(); track m.id) {
+          <li class="flex gap-3">
+            <div class="icono-movimiento" [class]="m.tipo"><mat-icon>{{ tipos[m.tipo].icono }}</mat-icon></div>
+            <div class="flex-col">
+              <strong>{{ tipos[m.tipo].etiqueta }}</strong>
+              <span class="texto-secundario">
+                {{ fecha(m.fecha) }}
+                @if (m.tipo === 'cambio_unidad' || m.tipo === 'reingreso') {
+                  @if (m.unidadOrigen && m.unidadOrigen !== m.unidadDestino) {
+                    · {{ m.unidadOrigen }} → {{ m.unidadDestino }}
+                  } @else if (m.unidadDestino) {
+                    · {{ m.unidadDestino }}
+                  }
+                } @else if (m.tipo === 'ingreso') {
+                  · {{ m.unidadDestino }}
+                } @else if (m.tipo === 'retiro') {
+                  · {{ m.unidadOrigen }}
+                }
+              </span>
+              @if (m.detalle) {
+                <span>{{ m.detalle }}</span>
+              }
+              @if (m.usuario) {
+                <small class="texto-secundario">Registrado por {{ m.usuario }}</small>
+              }
+            </div>
+          </li>
+        } @empty {
+          <li class="texto-secundario">Sin movimientos registrados.</li>
+        }
+      </ol>
+    </mat-tab>
+  </mat-tab-group>
+}

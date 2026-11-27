@@ -11,9 +11,13 @@ export const MIEMBROS_ROUTES: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'beneficiarios' },
       {
         path: 'beneficiarios',
-        component: EnConstruccion,
-        data: { titulo: 'Beneficiarios', icono: 'groups' },
+        loadComponent: () => import('./beneficiarios/beneficiarios').then((m) => m.Beneficiarios),
         title: 'Beneficiarios · Talí',
+      },
+      {
+        path: 'beneficiarios/:id',
+        loadComponent: () => import('./beneficiarios/beneficiario-detalle').then((m) => m.BeneficiarioDetalle),
+        title: 'Ficha del beneficiario · Talí',
       },
       {
         path: 'unidades',
