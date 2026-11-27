@@ -23,9 +23,17 @@ public static class Rut
         return resto switch { 11 => '0', 10 => 'K', _ => (char)('0' + resto) };
     }
 
-    /// <summary>Indica si el RUT tiene un dígito verificador correcto (acepta cualquier formato).</summary>
+    /// <summary>Largo máximo con formato: "12.345.678-9".</summary>
+    public const int LargoMaximo = 12;
+
+    /// <summary>
+    /// Indica si el RUT tiene un dígito verificador correcto. Acepta con o sin puntos y guion, pero no otros
+    /// caracteres (letras distintas de K, símbolos) ni más de 12 caracteres.
+    /// </summary>
     public static bool EsValido(string? rut)
     {
+        if (string.IsNullOrWhiteSpace(rut) || rut.Trim().Length > LargoMaximo) return false;
+        if (rut.Trim().Any(c => !(char.IsDigit(c) || c is 'k' or 'K' or '.' or '-'))) return false;
         var limpio = Limpiar(rut);
         if (limpio.Length < 2 || limpio.Length > 9) return false;
         var cuerpo = limpio[..^1];
@@ -54,4 +62,10 @@ public static class Rut
 public sealed class RutValidoAttribute() : ValidationAttribute("El RUT no es válido.")
 {
     public override bool IsValid(object? value) => value is null || (value is string s && Rut.EsValido(s));
+}
+
+/// <summary>Respuesta de las consultas "¿ya existe este RUT?" que usan los formularios antes de pedir el resto de los datos.</summary>
+public record RutRegistrado(bool Existe, long? Id, string? Nombre)
+{
+    public static readonly RutRegistrado Libre = new(false, null, null);
 }

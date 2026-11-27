@@ -30,7 +30,7 @@ public record SolicitudVoluntario(
     [Required(ErrorMessage = "Ingresa el RUT.")][RutValido] string Rut,
     [Required(ErrorMessage = "Ingresa los nombres.")][MaxLength(80, ErrorMessage = "Los nombres admiten hasta 80 caracteres.")] string Nombres,
     [Required(ErrorMessage = "Ingresa los apellidos.")][MaxLength(80, ErrorMessage = "Los apellidos admiten hasta 80 caracteres.")] string Apellidos,
-    [EmailAddress(ErrorMessage = "El correo no es válido.")][MaxLength(120)] string? Email,
+    [EmailAddress(ErrorMessage = "El correo no es válido.")][MaxLength(120, ErrorMessage = "El correo admite hasta 120 caracteres.")] string? Email,
     [MaxLength(20, ErrorMessage = "El teléfono admite hasta 20 caracteres.")] string? Telefono);
 
 public record SolicitudCargo(
@@ -82,6 +82,19 @@ public class VoluntariosController(AppDbContext db) : ControllerBase
             pagina.Elementos.Select(v => new VoluntarioResumen(v.Id, Rut.Formatear(v.Rut), v.Nombres, v.Apellidos, v.Email,
                 v.Telefono, v.UsuarioId != null, cargos[v.Id].ToList())).ToList(),
             pagina.Total, pagina.PaginaActual, pagina.Tamano));
+    }
+
+    /// <summary>Indica si ya hay un voluntario con ese RUT, para avisarlo en el formulario antes de pedir el resto de los datos.</summary>
+    [HttpGet("existe")]
+    public async Task<IActionResult> Existe([FromQuery] string? rut, CancellationToken ct)
+    {
+        if (!Rut.EsValido(rut)) return BadRequest(ResponseData.Error("El RUT no es válido."));
+        var normalizado = Rut.Normalizar(rut!);
+        var registrado = await db.Voluntarios.AsNoTracking()
+            .Where(x => x.Rut == normalizado)
+            .Select(x => new RutRegistrado(true, x.Id, x.Nombres + " " + x.Apellidos))
+            .FirstOrDefaultAsync(ct);
+        return Ok(ResponseData.Ok(registrado ?? RutRegistrado.Libre));
     }
 
     [HttpGet("{id:long}")]

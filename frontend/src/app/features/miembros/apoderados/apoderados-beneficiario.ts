@@ -6,9 +6,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { concatMap, filter, map, Observable, of } from 'rxjs';
 import { ConfirmacionService } from '../../../shared/confirmacion/confirmacion';
-import { SolicitudApoderado, VinculoApoderado } from '../miembros.models';
+import { VinculoApoderado } from '../miembros.models';
 import { ApoderadosService } from '../miembros.service';
-import { ApoderadoDialogo } from './apoderado-dialogo';
+import {
+  ApoderadoDialogo,
+  DatosApoderadoDialogo,
+  ResultadoApoderadoDialogo,
+} from './apoderado-dialogo';
 import { DatosVinculoDialogo, ResultadoVinculo, VinculoDialogo } from './vinculo-dialogo';
 
 /** Pestaña "Apoderados" de la ficha del beneficiario: vincular, cambiar parentesco o principal y desvincular. */
@@ -175,14 +179,19 @@ export class ApoderadosBeneficiario {
   private apoderadoDe(resultado: ResultadoVinculo): Observable<number> {
     if (resultado.apoderadoId !== 'nuevo') return of(resultado.apoderadoId);
     return this.dialogo
-      .open<ApoderadoDialogo, undefined, SolicitudApoderado>(ApoderadoDialogo, {
+      .open<ApoderadoDialogo, DatosApoderadoDialogo, ResultadoApoderadoDialogo>(ApoderadoDialogo, {
+        data: { permitirExistente: true },
         width: '520px',
       })
       .afterClosed()
       .pipe(
-        filter((datos): datos is SolicitudApoderado => !!datos),
-        concatMap((datos) => this.servicio.crear(datos)),
-        map((creado) => creado.id),
+        filter((r): r is ResultadoApoderadoDialogo => !!r),
+        // Si el RUT ya existía y se eligió usar a esa persona, se vincula sin crear otra.
+        concatMap((r) =>
+          r.tipo === 'existente'
+            ? of(r.id)
+            : this.servicio.crear(r.datos).pipe(map((creado) => creado.id)),
+        ),
       );
   }
 }

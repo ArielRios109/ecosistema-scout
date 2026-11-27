@@ -13,7 +13,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { concatMap, debounceTime, filter, map, Subject } from 'rxjs';
+import { concatMap, debounceTime, filter, map, Observable, Subject } from 'rxjs';
 import { Auth } from '../../../core/auth/auth';
 import { ROLES } from '../../../core/auth/permisos';
 import { ConfirmacionService } from '../../../shared/confirmacion/confirmacion';
@@ -21,7 +21,11 @@ import { PasswordTemporalDialogo } from '../../usuarios/password-temporal-dialog
 import { ApoderadoResumen, SolicitudApoderado } from '../miembros.models';
 import { ApoderadosService } from '../miembros.service';
 import { ApoderadoBeneficiariosDialogo } from './apoderado-beneficiarios-dialogo';
-import { ApoderadoDialogo } from './apoderado-dialogo';
+import {
+  ApoderadoDialogo,
+  DatosApoderadoDialogo,
+  ResultadoApoderadoDialogo,
+} from './apoderado-dialogo';
 
 /** Listado de apoderados: búsqueda, registro, edición, cuenta del Portal y eliminación (si no tiene vínculos). */
 @Component({
@@ -145,14 +149,19 @@ export class Apoderados implements OnInit {
       .subscribe(() => this.cargar());
   }
 
-  private formulario(apoderado?: ApoderadoResumen) {
+  private formulario(apoderado?: ApoderadoResumen): Observable<SolicitudApoderado> {
     return this.dialogo
-      .open<ApoderadoDialogo, ApoderadoResumen | undefined, SolicitudApoderado>(ApoderadoDialogo, {
-        data: apoderado,
+      .open<ApoderadoDialogo, DatosApoderadoDialogo, ResultadoApoderadoDialogo>(ApoderadoDialogo, {
+        data: { apoderado },
         width: '520px',
       })
       .afterClosed()
-      .pipe(filter((datos): datos is SolicitudApoderado => !!datos));
+      .pipe(
+        filter(
+          (r): r is Extract<ResultadoApoderadoDialogo, { tipo: 'nuevo' }> => r?.tipo === 'nuevo',
+        ),
+        map((r) => r.datos),
+      );
   }
 
   private cargar(): void {

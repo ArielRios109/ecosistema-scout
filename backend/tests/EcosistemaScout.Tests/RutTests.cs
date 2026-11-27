@@ -19,6 +19,9 @@ public class RutTests
     [InlineData(null)]
     [InlineData("abc-d")]
     [InlineData("0-0")]
+    [InlineData("abc12.345.678-5")]
+    [InlineData("0012.345.678-5")]
+    [InlineData("12_345_678-5")]
     public void EsValido_ConRutIncorrecto_DevuelveFalse(string? rut) => Assert.False(Rut.EsValido(rut));
 
     [Fact]

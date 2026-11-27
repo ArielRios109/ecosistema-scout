@@ -3,6 +3,8 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { MOSTRAR_MENSAJE_EXITO } from '../../core/api/respuesta-interceptor';
 import { SIN_SPINNER } from '../../core/carga/carga-interceptor';
+import { SIN_NOTIFICACION_ERROR } from '../../core/auth/auth-interceptor';
+import { RutRegistrado } from '../../shared/rut/rut';
 import { aParametros, ConsultaPaginada, Pagina } from '../../core/api/pagina';
 import { UsuarioResumen } from '../usuarios/usuarios.service';
 import {
@@ -31,6 +33,12 @@ import {
 const BASE = '/api/miembros';
 /** Las operaciones que modifican datos muestran el mensaje de éxito de la API en el snackbar. */
 export const conMensaje = () => ({ context: new HttpContext().set(MOSTRAR_MENSAJE_EXITO, true) });
+
+/** Consulta silenciosa (sin spinner ni snackbar) de si un RUT ya está registrado en un recurso de Miembros. */
+function consultarRut(http: HttpClient, recurso: string, rut: string): Observable<RutRegistrado> {
+  const context = new HttpContext().set(SIN_SPINNER, true).set(SIN_NOTIFICACION_ERROR, true);
+  return http.get<RutRegistrado>(`${BASE}/${recurso}/existe`, { params: { rut }, context });
+}
 
 /** Acceso a la API de unidades y patrullas. */
 @Injectable({ providedIn: 'root' })
@@ -89,6 +97,9 @@ export interface FiltroBeneficiarios extends ConsultaPaginada {
 @Injectable({ providedIn: 'root' })
 export class BeneficiariosService {
   private readonly http = inject(HttpClient);
+
+  existe = (rut: string): Observable<RutRegistrado> =>
+    consultarRut(this.http, 'beneficiarios', rut);
   private readonly base = `${BASE}/beneficiarios`;
 
   listar(filtro: FiltroBeneficiarios): Observable<Pagina<BeneficiarioResumen>> {
@@ -128,6 +139,8 @@ export class BeneficiariosService {
 @Injectable({ providedIn: 'root' })
 export class ApoderadosService {
   private readonly http = inject(HttpClient);
+
+  existe = (rut: string): Observable<RutRegistrado> => consultarRut(this.http, 'apoderados', rut);
   private readonly base = `${BASE}/apoderados`;
 
   listar(filtro: ConsultaPaginada, sinSpinner = false): Observable<Pagina<ApoderadoResumen>> {
@@ -257,6 +270,8 @@ export interface FiltroVoluntarios extends ConsultaPaginada {
 @Injectable({ providedIn: 'root' })
 export class VoluntariosService {
   private readonly http = inject(HttpClient);
+
+  existe = (rut: string): Observable<RutRegistrado> => consultarRut(this.http, 'voluntarios', rut);
   private readonly base = `${BASE}/voluntarios`;
 
   listar(filtro: FiltroVoluntarios): Observable<Pagina<VoluntarioResumen>> {

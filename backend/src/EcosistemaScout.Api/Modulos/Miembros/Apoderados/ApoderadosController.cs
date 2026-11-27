@@ -24,7 +24,7 @@ public record SolicitudApoderado(
     [Required(ErrorMessage = "Ingresa el RUT.")][RutValido] string Rut,
     [Required(ErrorMessage = "Ingresa los nombres.")][MaxLength(80, ErrorMessage = "Los nombres admiten hasta 80 caracteres.")] string Nombres,
     [Required(ErrorMessage = "Ingresa los apellidos.")][MaxLength(80, ErrorMessage = "Los apellidos admiten hasta 80 caracteres.")] string Apellidos,
-    [Required(ErrorMessage = "Ingresa el correo.")][EmailAddress(ErrorMessage = "El correo no es válido.")][MaxLength(120)] string Email,
+    [Required(ErrorMessage = "Ingresa el correo.")][EmailAddress(ErrorMessage = "El correo no es válido.")][MaxLength(120, ErrorMessage = "El correo admite hasta 120 caracteres.")] string Email,
     [MaxLength(20, ErrorMessage = "El teléfono admite hasta 20 caracteres.")] string? Telefono);
 
 /// <summary>Resultado de crear la cuenta del Portal: la contraseña temporal solo viene si la cuenta es nueva.</summary>
@@ -71,6 +71,19 @@ public class ApoderadosController(AppDbContext db, UserManager<Usuario> usuarios
             .PaginarAsync(filtro, ct);
 
         return ResponseData.Ok(pagina with { Elementos = pagina.Elementos.Select(a => a with { Rut = Rut.Formatear(a.Rut) }).ToList() });
+    }
+
+    /// <summary>Indica si ya hay un apoderado con ese RUT, para avisarlo en el formulario antes de pedir el resto de los datos.</summary>
+    [HttpGet("apoderados/existe")]
+    public async Task<IActionResult> Existe([FromQuery] string? rut, CancellationToken ct)
+    {
+        if (!Rut.EsValido(rut)) return BadRequest(ResponseData.Error("El RUT no es válido."));
+        var normalizado = Rut.Normalizar(rut!);
+        var registrado = await db.Apoderados.AsNoTracking()
+            .Where(x => x.Rut == normalizado)
+            .Select(x => new RutRegistrado(true, x.Id, x.Nombres + " " + x.Apellidos))
+            .FirstOrDefaultAsync(ct);
+        return Ok(ResponseData.Ok(registrado ?? RutRegistrado.Libre));
     }
 
     [HttpGet("apoderados/{id:long}")]
@@ -286,7 +299,8 @@ public class ApoderadosController(AppDbContext db, UserManager<Usuario> usuarios
         return new ApoderadoDetalle(a.Id, Rut.Formatear(a.Rut), a.Nombres, a.Apellidos, a.Email, a.Telefono, a.UsuarioId != null, beneficiarios);
     }
 
-    private static void Copiar(SolicitudApoderado solicitud, Apoderado apoderado, string rut)
+    /// <summary>Copia los datos de la solicitud (también lo usa la inscripción de beneficiarios).</summary>
+    internal static void Copiar(SolicitudApoderado solicitud, Apoderado apoderado, string rut)
     {
         apoderado.Rut = rut;
         apoderado.Nombres = solicitud.Nombres.Trim();
