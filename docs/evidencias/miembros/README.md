@@ -38,3 +38,12 @@ Capturas tomadas el 27-11-2026 con el sistema corriendo en Docker (`docker compo
 | `28-descartar-cambios.png` | Al salir con el formulario a medio llenar: "¿Descartar los cambios?" |
 | `29-celular-inscripcion.png` | Inscripción en celular (stepper vertical) |
 | `30-celular-apoderado-rut-registrado.png` | Apoderado en celular: RUT ya registrado y el resto de los campos bloqueados |
+
+## Reglas del PGS
+
+| Archivo | Qué muestra |
+|---|---|
+| `31-pgs-cupos-por-unidad-y-subgrupo.png` | Cupos por unidad (x/32) y subgrupo según la rama (seisenas x/6, patrullas x/8, equipos, comunidades) |
+| `32-pgs-avisos-en-listado.png` | Avisos de egreso y de ficha médica desactualizada en el listado |
+| `33-pgs-ficha-medica-desactualizada.png` | Franja de ficha médica con más de 3 meses sin cambios |
+| `34-pgs-aviso-de-egreso.png` | Aviso de egreso de un beneficiario de 20 años |

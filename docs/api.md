@@ -100,7 +100,7 @@ El RUT se acepta con o sin puntos y guion (máximo 12 caracteres; se rechazan le
 |---|---|---|
 | `Miembros` | administrador, dirigente | Todo `/api/miembros` (por ahora el dirigente ve todas las unidades) |
 | `Administracion` | administrador | `/api/base/*`; crear, editar, desactivar o eliminar unidades; cuenta del Portal |
-| `Inventario` / `InventarioEscritura` | administrador, tesorería, dirigente, revisor / sin el revisor | `/api/inventario` |
+| `Inventario` / `InventarioEscritura` / `InventarioGestion` | administrador, tesorería, dirigente, revisor / sin el revisor / solo administrador y tesorería | `/api/inventario` (consulta / préstamos / bienes, categorías y bajas) |
 | `Finanzas` / `FinanzasEscritura` | administrador, tesorería, revisor / administrador y tesorería | `/api/finanzas` |
 | `Portal` | administrador, tesorería, apoderado | `/api/portal` |
 
@@ -196,9 +196,30 @@ El frontend oculta los menús según el rol (`core/auth/permisos.ts`), pero la s
 | PUT / DELETE | `/api/miembros/voluntarios/{id}/cargos/{cargoId}` | admin, dirigente | Corrige o elimina un registro erróneo |
 | POST | `/api/miembros/voluntarios/{id}/cargos/{cargoId}/terminar` | admin, dirigente | Termina el cargo (pasa al historial) |
 
+### Inventario
+
+Lo ven administración, tesorería, dirigentes y la comisión revisora (`Inventario`). Bienes, categorías y bajas los administran administración y tesorería (`InventarioGestion`); los préstamos también los registra el dirigente (`InventarioEscritura`).
+
+| Método | Ruta | Roles | Descripción |
+|---|---|---|---|
+| GET | `/api/inventario/categorias` | Inventario | Categorías con su cantidad de bienes |
+| POST / PUT / DELETE | `/api/inventario/categorias[/{id}]` | admin, tesorería | Crear, renombrar o eliminar (solo sin bienes) |
+| GET | `/api/inventario/bienes` | Inventario | Listado paginado (`buscar`, `categoriaId`, `estado`, `ubicacion`, `incluirBajas`) con disponible y préstamos vencidos |
+| GET | `/api/inventario/bienes/{id}` | Inventario | Ficha con préstamos y baja |
+| POST / PUT | `/api/inventario/bienes[/{id}]` | admin, tesorería | Registra (código correlativo `INV-00001`) o edita; la cantidad no puede quedar bajo lo prestado |
+| POST | `/api/inventario/bienes/{id}/baja` | admin, tesorería | Baja con motivo; no se permite con préstamos activos y el bien queda en el historial |
+| PUT / GET / DELETE | `/api/inventario/bienes/{id}/foto` | admin, tesorería (GET: Inventario) | Foto JPG, PNG o WebP de hasta 3 MB; se valida el tipo real del archivo |
+| GET | `/api/inventario/bienes/exportar` | Inventario | Planilla Excel con los filtros del listado |
+| GET | `/api/inventario/responsables` | Inventario | Voluntarios que pueden ser responsables (solo id y nombre) |
+| GET | `/api/inventario/prestamos` | Inventario | Préstamos paginados (`estado`: activos, vencidos o devueltos) |
+| POST | `/api/inventario/bienes/{id}/prestamos` | admin, tesorería, dirigente | Préstamo; no se presta más de lo disponible |
+| POST | `/api/inventario/prestamos/{id}/devolucion` | admin, tesorería, dirigente | Devolución con estado; "perdido" descuenta la cantidad del bien |
+
+Las fotos se guardan fuera de la base de datos, en la carpeta `Archivos:Ruta` (en Docker, el volumen `archivos`), detrás de la interfaz `IAlmacenArchivos`. Así se puede pasar a un almacenamiento en la nube sin tocar los controladores.
+
 ### Módulos en construcción
 
-`GET /api/inventario`, `/api/finanzas` y `/api/portal` solo informan que el módulo está en construcción, pero ya están protegidos por su política.
+`GET /api/finanzas` y `/api/portal` solo informan que el módulo está en construcción, pero ya están protegidos por su política.
 
 ## Probar la API
 
