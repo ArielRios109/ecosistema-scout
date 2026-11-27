@@ -92,3 +92,48 @@ export const TIPOS_MOVIMIENTO: Record<TipoMovimiento, { etiqueta: string; icono:
   retiro: { etiqueta: 'Retiro', icono: 'logout' },
   reingreso: { etiqueta: 'Reingreso', icono: 'replay' },
 };
+
+export interface ApoderadoResumen {
+  id: number;
+  rut: string;
+  nombres: string;
+  apellidos: string;
+  email: string;
+  telefono: string | null;
+  tieneCuenta: boolean;
+  beneficiarios: number;
+}
+
+export interface SolicitudApoderado {
+  rut: string;
+  nombres: string;
+  apellidos: string;
+  email: string;
+  telefono: string | null;
+}
+
+export interface BeneficiarioVinculado {
+  beneficiarioId: number;
+  nombre: string;
+  unidad: string;
+  estado: EstadoBeneficiario;
+  parentesco: string;
+  esPrincipal: boolean;
+}
+
+export interface ApoderadoDetalle extends Omit<ApoderadoResumen, 'beneficiarios'> {
+  beneficiarios: BeneficiarioVinculado[];
+}
+
+export interface VinculoApoderado {
+  apoderadoId: number;
+  rut: string;
+  nombre: string;
+  email: string;
+  telefono: string | null;
+  tieneCuenta: boolean;
+  parentesco: string;
+  esPrincipal: boolean;
+}
+
+export const PARENTESCOS = ['Madre', 'Padre', 'Abuela', 'Abuelo', 'Tía', 'Tío', 'Hermana', 'Hermano', 'Tutor legal', 'Otro'];

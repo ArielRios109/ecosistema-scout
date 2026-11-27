@@ -1,0 +1,130 @@
+<div class="filtros flex items-center gap-2 mb-2">
+  <mat-form-field appearance="outline" class="flex-1 buscador" subscriptSizing="dynamic">
+    <mat-label>Buscar por nombre, correo o RUT</mat-label>
+    <mat-icon matPrefix>search</mat-icon>
+    <input matInput [(ngModel)]="buscar" (ngModelChange)="alBuscar($event)" />
+  </mat-form-field>
+  <button mat-flat-button (click)="nuevo()">
+    <mat-icon>person_add</mat-icon>
+    Nuevo apoderado
+  </button>
+</div>
+
+<ng-template #menuAcciones let-a>
+  <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Acciones">
+    <mat-icon>more_vert</mat-icon>
+  </button>
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item (click)="verBeneficiarios(a)">
+      <mat-icon>groups</mat-icon>
+      <span>Ver beneficiarios</span>
+    </button>
+    <button mat-menu-item (click)="editar(a)">
+      <mat-icon>edit</mat-icon>
+      <span>Editar</span>
+    </button>
+    @if (esAdmin && !a.tieneCuenta) {
+      <button mat-menu-item (click)="crearCuenta(a)">
+        <mat-icon>key</mat-icon>
+        <span>Crear cuenta del Portal</span>
+      </button>
+    }
+    @if (a.beneficiarios === 0) {
+      <button mat-menu-item (click)="eliminar(a)">
+        <mat-icon>delete</mat-icon>
+        <span>Eliminar</span>
+      </button>
+    }
+  </mat-menu>
+</ng-template>
+
+@if (esMovil()) {
+  <div class="flex-col gap-2">
+    @for (a of apoderados(); track a.id) {
+      <mat-card appearance="outlined">
+        <mat-card-header>
+          <mat-card-title>{{ a.nombres }} {{ a.apellidos }}</mat-card-title>
+          <mat-card-subtitle>{{ a.rut }}</mat-card-subtitle>
+          <div class="acciones-tarjeta">
+            <ng-container *ngTemplateOutlet="menuAcciones; context: { $implicit: a }" />
+          </div>
+        </mat-card-header>
+        <mat-card-content class="flex-col gap-1 mt-2">
+          <span>{{ a.email }}</span>
+          <span class="texto-secundario">
+            {{ a.beneficiarios }} beneficiario{{ a.beneficiarios === 1 ? '' : 's' }} ·
+            {{ a.tieneCuenta ? 'Con cuenta del Portal' : 'Sin cuenta del Portal' }}
+          </span>
+        </mat-card-content>
+      </mat-card>
+    } @empty {
+      <p class="texto-secundario texto-centro p-4">No hay apoderados que coincidan.</p>
+    }
+  </div>
+} @else {
+  <div class="tabla-contenedor">
+    <table mat-table [dataSource]="apoderados()" class="ancho-completo">
+      <ng-container matColumnDef="nombre">
+        <th mat-header-cell *matHeaderCellDef>Nombre</th>
+        <td mat-cell *matCellDef="let a">{{ a.apellidos }}, {{ a.nombres }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="rut">
+        <th mat-header-cell *matHeaderCellDef>RUT</th>
+        <td mat-cell *matCellDef="let a" class="texto-secundario">{{ a.rut }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="contacto">
+        <th mat-header-cell *matHeaderCellDef>Contacto</th>
+        <td mat-cell *matCellDef="let a">
+          <div class="flex-col">
+            <span>{{ a.email }}</span>
+            @if (a.telefono) {
+              <small class="texto-secundario">{{ a.telefono }}</small>
+            }
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="beneficiarios">
+        <th mat-header-cell *matHeaderCellDef>Beneficiarios</th>
+        <td mat-cell *matCellDef="let a">{{ a.beneficiarios }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="cuenta">
+        <th mat-header-cell *matHeaderCellDef>Portal</th>
+        <td mat-cell *matCellDef="let a">
+          <mat-icon
+            class="icono-cuenta"
+            [class.activa]="a.tieneCuenta"
+            [matTooltip]="a.tieneCuenta ? 'Tiene cuenta del Portal' : 'Sin cuenta del Portal'"
+          >
+            {{ a.tieneCuenta ? 'verified_user' : 'no_accounts' }}
+          </mat-icon>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let a" class="acciones">
+          <ng-container *ngTemplateOutlet="menuAcciones; context: { $implicit: a }" />
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+      <tr mat-row *matRowDef="let fila; columns: columnas"></tr>
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell p-3 texto-secundario" [attr.colspan]="columnas.length">No hay apoderados que coincidan.</td>
+      </tr>
+    </table>
+  </div>
+}
+
+<mat-paginator
+  [length]="total()"
+  [pageIndex]="pagina - 1"
+  [pageSize]="tamano"
+  [pageSizeOptions]="[10, 25, 50]"
+  (page)="alPaginar($event)"
+  aria-label="Páginas de apoderados"
+/>

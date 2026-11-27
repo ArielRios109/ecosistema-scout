@@ -58,7 +58,9 @@
     </mat-tab>
 
     <mat-tab label="Apoderados">
-      <p class="texto-secundario p-4 texto-centro">Los apoderados se gestionarán aquí.</p>
+      <ng-template matTabContent>
+        <app-apoderados-beneficiario [beneficiarioId]="b.id" [nombre]="b.nombres + ' ' + b.apellidos" />
+      </ng-template>
     </mat-tab>
 
     <mat-tab label="Contactos">

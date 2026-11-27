@@ -26,8 +26,7 @@ export const MIEMBROS_ROUTES: Routes = [
       },
       {
         path: 'apoderados',
-        component: EnConstruccion,
-        data: { titulo: 'Apoderados', icono: 'family_restroom' },
+        loadComponent: () => import('./apoderados/apoderados').then((m) => m.Apoderados),
         title: 'Apoderados · Talí',
       },
       {
