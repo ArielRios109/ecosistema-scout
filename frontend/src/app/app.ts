@@ -1,10 +1,11 @@
 import { afterNextRender, Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { SpinnerGlobal } from './core/carga/spinner-global';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
-  template: '<router-outlet />',
+  imports: [RouterOutlet, SpinnerGlobal],
+  template: '<router-outlet /><app-spinner-global />',
 })
 export class App {
   constructor() {
