@@ -1,0 +1,25 @@
+.tabla-contenedor {
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 12px;
+  overflow: auto;
+}
+
+.acciones {
+  text-align: end;
+  width: 56px;
+}
+
+.estado {
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-primary);
+
+  &.inactivo {
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+@media (max-width: 599px) {
+  .filtros {
+    flex-direction: column;
+  }
+}

@@ -45,7 +45,9 @@ builder.Services
     })
     .AddRoles<Rol>()
     .AddEntityFrameworkStores<AppDbContext>()
-    .AddSignInManager();
+    .AddSignInManager()
+    .AddDefaultTokenProviders()
+    .AddErrorDescriber<ErroresIdentityEspanol>();
 
 // ----- Autenticación con JWT -----
 builder.Services.Configure<JwtOpciones>(builder.Configuration.GetSection(JwtOpciones.Seccion));
@@ -86,7 +88,8 @@ builder.Services.AddCors(o => o.AddPolicy(PoliticaFrontend, p => p
     .AllowAnyHeader()
     .AllowAnyMethod()));
 
-builder.Services.AddControllers();
+// Filtro global: con contraseña temporal solo se puede cambiar la contraseña.
+builder.Services.AddControllers(o => o.Filters.Add<FiltroCambioPassword>());
 builder.Services.AddOpenApi();
 builder.Services.AgregarManejoErrores();
 

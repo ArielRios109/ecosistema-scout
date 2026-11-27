@@ -21,6 +21,10 @@
         <span>{{ usuario.email }}</span>
         <small>{{ rolesLegibles() }}</small>
       </div>
+      <a mat-menu-item routerLink="/cambiar-password">
+        <mat-icon>key</mat-icon>
+        <span>Cambiar mi contraseña</span>
+      </a>
       <button mat-menu-item (click)="auth.logout()">
         <mat-icon>logout</mat-icon>
         <span>Cerrar sesión</span>

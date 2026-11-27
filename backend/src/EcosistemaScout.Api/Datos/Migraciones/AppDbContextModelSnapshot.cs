@@ -233,6 +233,10 @@ namespace EcosistemaScout.Api.Datos.Migraciones
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("now()");
 
+                    b.Property<bool>("DebeCambiarPassword")
+                        .HasColumnType("boolean")
+                        .HasColumnName("debe_cambiar_password");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(120)

@@ -29,6 +29,8 @@ public class Usuario : IdentityUser<long>, IConFechas
     public string Nombre { get; set; } = null!;
     public bool Activo { get; set; } = true;
     public DateTime? UltimoAcceso { get; set; }
+    /// <summary>true cuando tiene una contraseña temporal (cuenta nueva o restablecida) y debe cambiarla al ingresar.</summary>
+    public bool DebeCambiarPassword { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 

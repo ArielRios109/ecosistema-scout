@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, invitadoGuard, rolGuard } from './core/auth/auth-guard';
+import { authGuard, cambioPasswordGuard, invitadoGuard, rolGuard } from './core/auth/auth-guard';
 
 export const routes: Routes = [
   {
@@ -12,6 +12,7 @@ export const routes: Routes = [
     path: '',
     loadComponent: () => import('./layout/shell/shell').then((m) => m.Shell),
     canActivate: [authGuard],
+    canActivateChild: [cambioPasswordGuard],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'inicio' },
       {
@@ -46,6 +47,18 @@ export const routes: Routes = [
         data: { modulo: 'portal' },
         loadChildren: () => import('./features/portal/portal.routes').then((m) => m.PORTAL_ROUTES),
         title: 'Portal de pagos · Talí',
+      },
+      {
+        path: 'usuarios',
+        canActivate: [rolGuard],
+        data: { modulo: 'administracion' },
+        loadComponent: () => import('./features/usuarios/usuarios').then((m) => m.Usuarios),
+        title: 'Usuarios · Talí',
+      },
+      {
+        path: 'cambiar-password',
+        loadComponent: () => import('./features/cuenta/cambiar-password').then((m) => m.CambiarPassword),
+        title: 'Cambiar mi contraseña · Talí',
       },
     ],
   },

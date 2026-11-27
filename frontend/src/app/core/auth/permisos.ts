@@ -7,7 +7,7 @@ export const ROLES = {
   revisor: 'revisor',
 } as const;
 
-export type Modulo = 'miembros' | 'inventario' | 'finanzas' | 'portal';
+export type Modulo = 'miembros' | 'inventario' | 'finanzas' | 'portal' | 'administracion';
 
 /**
  * Qué roles pueden ver cada módulo. Replica las políticas de la API
@@ -19,6 +19,7 @@ export const ROLES_POR_MODULO: Record<Modulo, readonly string[]> = {
   inventario: [ROLES.administrador, ROLES.tesoreria, ROLES.dirigente, ROLES.revisor],
   finanzas: [ROLES.administrador, ROLES.tesoreria, ROLES.revisor],
   portal: [ROLES.administrador, ROLES.tesoreria, ROLES.apoderado],
+  administracion: [ROLES.administrador],
 };
 
 /** Nombre legible de cada rol para mostrar en pantalla. */

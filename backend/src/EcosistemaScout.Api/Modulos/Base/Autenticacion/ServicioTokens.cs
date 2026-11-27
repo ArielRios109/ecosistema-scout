@@ -23,6 +23,11 @@ public class ServicioTokens(IOptions<JwtOpciones> opciones, TimeProvider reloj)
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         };
         claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
+        if (usuario.DebeCambiarPassword)
+        {
+            // Con contraseña temporal solo puede cambiarla (ver FiltroCambioPassword).
+            claims.Add(new Claim(ClaimsTali.CambioPasswordPendiente, "true"));
+        }
 
         var credenciales = new SigningCredentials(
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_opciones.Clave)), SecurityAlgorithms.HmacSha256);
