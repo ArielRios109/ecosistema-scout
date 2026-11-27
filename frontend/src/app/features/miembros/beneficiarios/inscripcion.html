@@ -1,0 +1,276 @@
+<a mat-button routerLink="/miembros/beneficiarios" class="mb-2">
+  <mat-icon>arrow_back</mat-icon>
+  Volver al listado
+</a>
+<h2 class="titulo-grande m-0 mb-3">Inscribir beneficiario</h2>
+
+<mat-stepper linear [orientation]="esMovil() ? 'vertical' : 'horizontal'" #stepper>
+  <!-- 1. RUT -->
+  <mat-step [stepControl]="formulario.controls.identificacion" label="RUT">
+    <form [formGroup]="formulario.controls.identificacion" class="paso">
+      <p class="texto-secundario mt-3">
+        Primero revisamos que el RUT sea válido y que no esté inscrito.
+      </p>
+      <mat-form-field appearance="outline" class="campo-rut">
+        <mat-label>RUT del beneficiario</mat-label>
+        <input
+          matInput
+          formControlName="rut"
+          appRut
+          placeholder="12.345.678-5"
+          [errorStateMatcher]="errorRut"
+        />
+        @if (rut.pending) {
+          <mat-spinner matSuffix diameter="20" />
+        } @else if (rut.valid) {
+          <mat-icon matSuffix class="ok">check_circle</mat-icon>
+        }
+        @if (rut.hasError('required')) {
+          <mat-error>Ingresa el RUT.</mat-error>
+        } @else if (rut.hasError('rut')) {
+          <mat-error>El RUT no es válido.</mat-error>
+        } @else if (registrado()) {
+          <mat-error>Este RUT ya está inscrito.</mat-error>
+        }
+      </mat-form-field>
+      @if (registrado(); as r) {
+        <mat-card appearance="outlined" class="aviso">
+          <mat-card-content class="flex items-center justify-between gap-2">
+            <span
+              ><strong>{{ r.nombre }}</strong> ya está inscrito con este RUT.</span
+            >
+            <button mat-stroked-button type="button" (click)="verFichaExistente(r.id)">
+              <mat-icon>badge</mat-icon>
+              Ver su ficha
+            </button>
+          </mat-card-content>
+        </mat-card>
+      }
+      <div class="acciones">
+        <button mat-button type="button" (click)="cancelar()">Cancelar</button>
+        <button mat-flat-button matStepperNext type="button" [disabled]="!rut.valid">
+          Continuar
+        </button>
+      </div>
+    </form>
+  </mat-step>
+
+  <!-- 2. Datos personales -->
+  <mat-step [stepControl]="formulario.controls.personales" label="Datos personales">
+    <div class="paso">
+      <app-campos-personales [grupo]="formulario.controls.personales" class="mt-3" />
+      <div class="acciones">
+        <button mat-button matStepperPrevious type="button">Atrás</button>
+        <button mat-flat-button matStepperNext type="button">Continuar</button>
+      </div>
+    </div>
+  </mat-step>
+
+  <!-- 3. Unidad -->
+  <mat-step [stepControl]="formulario.controls.ubicacion" label="Unidad">
+    <div class="paso">
+      <app-campos-ubicacion
+        [grupo]="formulario.controls.ubicacion"
+        [unidades]="unidades()"
+        class="mt-3"
+      />
+      <div class="acciones">
+        <button mat-button matStepperPrevious type="button">Atrás</button>
+        <button mat-flat-button matStepperNext type="button">Continuar</button>
+      </div>
+    </div>
+  </mat-step>
+
+  <!-- 4. Apoderados y contactos -->
+  <mat-step label="Apoderados y contactos" [optional]="true">
+    <div class="paso">
+      <div class="flex items-center justify-between gap-2 mt-3">
+        <h3 class="subtitulo m-0">Apoderados</h3>
+        <button mat-stroked-button type="button" (click)="agregarApoderado()">
+          <mat-icon>add_link</mat-icon>
+          Agregar apoderado
+        </button>
+      </div>
+      @if (apoderados().length === 0) {
+        <p class="texto-secundario">
+          Aún no hay apoderados. Puedes agregarlos ahora o después desde la ficha.
+        </p>
+      } @else {
+        <mat-list class="lista mt-2">
+          @for (a of apoderados(); track $index) {
+            <mat-list-item>
+              <mat-icon matListItemIcon>{{ a.esPrincipal ? 'star' : 'person' }}</mat-icon>
+              <span matListItemTitle>{{ a.nombre }}{{ a.nuevo ? ' (nuevo)' : '' }}</span>
+              <span matListItemLine
+                >{{ a.parentesco }}{{ a.esPrincipal ? ' · Principal' : '' }}</span
+              >
+              <div matListItemMeta class="flex">
+                @if (!a.esPrincipal) {
+                  <button
+                    mat-icon-button
+                    type="button"
+                    (click)="marcarPrincipal($index)"
+                    matTooltip="Marcar como principal"
+                    aria-label="Marcar como principal"
+                  >
+                    <mat-icon>star_outline</mat-icon>
+                  </button>
+                }
+                <button
+                  mat-icon-button
+                  type="button"
+                  (click)="quitarApoderado($index)"
+                  matTooltip="Quitar"
+                  aria-label="Quitar apoderado"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            </mat-list-item>
+          }
+        </mat-list>
+      }
+
+      <div class="flex items-center justify-between gap-2 mt-3">
+        <h3 class="subtitulo m-0">Contactos de emergencia</h3>
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="agregarContacto()"
+          [disabled]="contactos().length >= maximoContactos"
+        >
+          <mat-icon>add_call</mat-icon>
+          Agregar contacto
+        </button>
+      </div>
+      @if (contactos().length === 0) {
+        <p class="texto-secundario">
+          Hasta {{ maximoContactos }} personas a quienes llamar si pasa algo en una actividad.
+        </p>
+      } @else {
+        <mat-list class="lista mt-2">
+          @for (c of contactos(); track $index) {
+            <mat-list-item>
+              <mat-icon matListItemIcon>contact_phone</mat-icon>
+              <span matListItemTitle
+                >{{ c.nombre }}{{ c.parentesco ? ' · ' + c.parentesco : '' }}</span
+              >
+              <span matListItemLine>{{ c.telefono }}</span>
+              <div matListItemMeta class="flex">
+                <button
+                  mat-icon-button
+                  type="button"
+                  (click)="agregarContacto(c, $index)"
+                  matTooltip="Editar"
+                  aria-label="Editar contacto"
+                >
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  type="button"
+                  (click)="quitarContacto($index)"
+                  matTooltip="Quitar"
+                  aria-label="Quitar contacto"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            </mat-list-item>
+          }
+        </mat-list>
+      }
+      <div class="acciones">
+        <button mat-button matStepperPrevious type="button">Atrás</button>
+        <button mat-flat-button matStepperNext type="button">Continuar</button>
+      </div>
+    </div>
+  </mat-step>
+
+  <!-- 5. Ficha médica -->
+  <mat-step label="Ficha médica" [optional]="true">
+    <form [formGroup]="ficha" class="paso">
+      <p class="flex items-center gap-1 texto-secundario mt-3">
+        <mat-icon class="icono-chico">lock</mat-icon>
+        Opcional. Se guarda cifrada y solo la ven administración y dirigentes.
+      </p>
+      <div class="grilla-ficha">
+        <mat-form-field appearance="outline">
+          <mat-label>Previsión de salud</mat-label>
+          <mat-select formControlName="prevision">
+            <mat-option value="">Sin información</mat-option>
+            @for (p of previsiones; track p) {
+              <mat-option [value]="p">{{ p }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Grupo sanguíneo</mat-label>
+          <mat-select formControlName="grupoSanguineo">
+            <mat-option value="">Sin información</mat-option>
+            @for (g of grupos; track g) {
+              <mat-option [value]="g">{{ g }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        @for (campo of camposFicha; track campo.clave) {
+          <mat-form-field appearance="outline" class="completo">
+            <mat-label>{{ campo.etiqueta }}</mat-label>
+            <textarea matInput [formControlName]="campo.clave" rows="2" maxlength="1000"></textarea>
+            <mat-hint>{{ campo.ayuda }}</mat-hint>
+            <mat-hint align="end">{{ ficha.get(campo.clave)?.value?.length ?? 0 }}/1000</mat-hint>
+          </mat-form-field>
+        }
+      </div>
+      <div class="acciones">
+        <button mat-button matStepperPrevious type="button">Atrás</button>
+        <button mat-flat-button matStepperNext type="button">Continuar</button>
+      </div>
+    </form>
+  </mat-step>
+
+  <!-- 6. Resumen -->
+  <mat-step label="Resumen">
+    <div class="paso">
+      <dl class="resumen mt-3">
+        <div>
+          <dt>Beneficiario</dt>
+          <dd>{{ nombreCompleto() }} · {{ rut.value }}</dd>
+        </div>
+        <div>
+          <dt>Unidad</dt>
+          <dd>{{ unidadElegida() }}</dd>
+        </div>
+        <div>
+          <dt>Apoderados</dt>
+          <dd>
+            @for (a of apoderados(); track $index) {
+              <span class="bloque"
+                >{{ a.nombre }} · {{ a.parentesco }}{{ a.esPrincipal ? ' (principal)' : '' }}</span
+              >
+            } @empty {
+              Sin apoderados
+            }
+          </dd>
+        </div>
+        <div>
+          <dt>Contactos de emergencia</dt>
+          <dd>
+            {{ contactos().length || 'Sin' }} contacto{{ contactos().length === 1 ? '' : 's' }}
+          </dd>
+        </div>
+        <div>
+          <dt>Ficha médica</dt>
+          <dd>{{ tieneFicha() ? 'Completada' : 'Sin completar (se puede agregar después)' }}</dd>
+        </div>
+      </dl>
+      <div class="acciones">
+        <button mat-button matStepperPrevious type="button">Atrás</button>
+        <button mat-flat-button type="button" (click)="inscribir()">
+          <mat-icon>how_to_reg</mat-icon>
+          Inscribir
+        </button>
+      </div>
+    </div>
+  </mat-step>
+</mat-stepper>

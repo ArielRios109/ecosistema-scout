@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { cambiosSinGuardarGuard } from '../../shared/confirmacion/cambios-sin-guardar.guard';
 import { MiembrosLayout } from './miembros-layout';
 
 /** Rutas del módulo Gestión de Miembros (se carga solo cuando se visita). */
@@ -12,6 +13,19 @@ export const MIEMBROS_ROUTES: Routes = [
         path: 'beneficiarios',
         loadComponent: () => import('./beneficiarios/beneficiarios').then((m) => m.Beneficiarios),
         title: 'Beneficiarios · Talí',
+      },
+      {
+        path: 'beneficiarios/nuevo',
+        loadComponent: () => import('./beneficiarios/inscripcion').then((m) => m.Inscripcion),
+        canDeactivate: [cambiosSinGuardarGuard],
+        title: 'Inscribir beneficiario · Talí',
+      },
+      {
+        path: 'beneficiarios/:id/editar',
+        loadComponent: () =>
+          import('./beneficiarios/editar-beneficiario').then((m) => m.EditarBeneficiario),
+        canDeactivate: [cambiosSinGuardarGuard],
+        title: 'Editar beneficiario · Talí',
       },
       {
         path: 'beneficiarios/:id',

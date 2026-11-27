@@ -15,7 +15,7 @@ import {
 import { FichaMedicaService } from '../miembros.service';
 
 /** Campos de texto largo de la ficha, en el orden en que se muestran. */
-const CAMPOS: {
+export const CAMPOS_FICHA: {
   clave: keyof SolicitudFichaMedica;
   etiqueta: string;
   icono: string;
@@ -194,7 +194,7 @@ export class FichaMedicaBeneficiario {
   private readonly servicio = inject(FichaMedicaService);
   protected readonly ficha = signal<FichaMedica | null>(null);
   protected readonly editando = signal(false);
-  protected readonly campos = CAMPOS;
+  protected readonly campos = CAMPOS_FICHA;
   protected readonly grupos = GRUPOS_SANGUINEOS;
   protected readonly previsiones = PREVISIONES;
 

@@ -229,3 +229,18 @@ export const CARGOS_SUGERIDOS = [
   'Comité de padres',
   'Apoyo',
 ];
+
+/** Apoderado de la inscripción: uno ya registrado (apoderadoId) o uno nuevo (nuevo). */
+export interface ApoderadoInscripcion {
+  apoderadoId: number | null;
+  nuevo: SolicitudApoderado | null;
+  parentesco: string;
+  esPrincipal: boolean;
+}
+
+export interface SolicitudInscripcion {
+  beneficiario: SolicitudBeneficiario;
+  apoderados: ApoderadoInscripcion[];
+  contactos: SolicitudContacto[];
+  fichaMedica: SolicitudFichaMedica | null;
+}

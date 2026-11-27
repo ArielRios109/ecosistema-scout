@@ -13,7 +13,7 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { Router } from '@angular/router';
-import { concatMap, debounceTime, filter, map, Subject } from 'rxjs';
+import { debounceTime, map, Subject } from 'rxjs';
 import { BeneficiarioResumen, EstadoBeneficiario, Unidad } from '../miembros.models';
 import { BeneficiariosService, UnidadesService } from '../miembros.service';
 import { AccionesBeneficiario } from './acciones-beneficiario';
@@ -92,17 +92,11 @@ export class Beneficiarios implements OnInit {
   }
 
   protected nuevo(): void {
-    this.acciones
-      .formulario()
-      .pipe(
-        filter(Boolean),
-        concatMap((datos) => this.servicio.crear(datos)),
-      )
-      .subscribe(() => this.cargar());
+    this.router.navigate(['/miembros/beneficiarios/nuevo']);
   }
 
   protected editar(beneficiario: BeneficiarioResumen): void {
-    this.acciones.editar(beneficiario.id).subscribe(() => this.cargar());
+    this.router.navigate(['/miembros/beneficiarios', beneficiario.id, 'editar']);
   }
 
   protected retirarOReingresar(beneficiario: BeneficiarioResumen): void {

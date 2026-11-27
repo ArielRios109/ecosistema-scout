@@ -21,6 +21,7 @@ import {
   SolicitudBeneficiario,
   SolicitudContacto,
   SolicitudFichaMedica,
+  SolicitudInscripcion,
   SolicitudCargo,
   SolicitudMovimiento,
   SolicitudVoluntario,
@@ -108,6 +109,11 @@ export class BeneficiariosService {
 
   obtener(id: number): Observable<BeneficiarioDetalle> {
     return this.http.get<BeneficiarioDetalle>(`${this.base}/${id}`);
+  }
+
+  /** Inscripción completa (beneficiario, apoderados, contactos y ficha) en una sola operación. */
+  inscribir(datos: SolicitudInscripcion): Observable<BeneficiarioDetalle> {
+    return this.http.post<BeneficiarioDetalle>(`${this.base}/inscripcion`, datos, conMensaje());
   }
 
   crear(datos: SolicitudBeneficiario): Observable<BeneficiarioDetalle> {

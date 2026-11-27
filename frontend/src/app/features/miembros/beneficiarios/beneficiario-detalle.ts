@@ -3,7 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { formatearFecha } from '../../../core/i18n/fechas';
 import { ApoderadosBeneficiario } from '../apoderados/apoderados-beneficiario';
 import { ContactosBeneficiario } from '../contactos/contactos-beneficiario';
@@ -40,6 +40,7 @@ export class BeneficiarioDetalle {
 
   private readonly servicio = inject(BeneficiariosService);
   private readonly acciones = inject(AccionesBeneficiario);
+  private readonly router = inject(Router);
 
   protected readonly beneficiario = signal<Detalle | null>(null);
   protected readonly historial = signal<MovimientoHistorial[]>([]);
@@ -53,7 +54,7 @@ export class BeneficiarioDetalle {
 
   protected editar(): void {
     const actual = this.beneficiario();
-    if (actual) this.acciones.editar(actual.id).subscribe(() => this.cargar(actual.id));
+    if (actual) this.router.navigate(['/miembros/beneficiarios', actual.id, 'editar']);
   }
 
   protected cambiarEstado(): void {

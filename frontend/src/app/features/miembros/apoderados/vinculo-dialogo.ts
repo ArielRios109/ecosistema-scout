@@ -23,6 +23,9 @@ export interface DatosVinculoDialogo {
 /** Resultado: el apoderado elegido (o "nuevo" para registrarlo primero), el parentesco y si es principal. */
 export interface ResultadoVinculo {
   apoderadoId: number | 'nuevo';
+  /** Nombre y RUT del apoderado elegido de la lista (para mostrarlo antes de guardar). */
+  nombre?: string;
+  rut?: string;
   parentesco: string;
   esPrincipal: boolean;
 }
@@ -158,7 +161,10 @@ export class VinculoDialogo {
       : (apoderado ?? '');
   }
 
+  private elegido?: ApoderadoResumen;
+
   protected elegir(apoderado: ApoderadoResumen): void {
+    this.elegido = apoderado;
     this.formulario.controls.apoderadoId.setValue(apoderado.id);
   }
 
@@ -179,6 +185,8 @@ export class VinculoDialogo {
     const valor = this.formulario.getRawValue();
     this.ref.close({
       apoderadoId: valor.apoderadoId!,
+      nombre: this.elegido ? `${this.elegido.nombres} ${this.elegido.apellidos}` : undefined,
+      rut: this.elegido?.rut,
       parentesco: valor.parentesco!,
       esPrincipal: !!valor.esPrincipal,
     });

@@ -2,6 +2,9 @@ using System.ComponentModel.DataAnnotations;
 using EcosistemaScout.Api.Comun;
 using EcosistemaScout.Api.Datos;
 using EcosistemaScout.Api.Modulos.Base.Autorizacion;
+using EcosistemaScout.Api.Modulos.Miembros.Apoderados;
+using EcosistemaScout.Api.Modulos.Miembros.Contactos;
+using EcosistemaScout.Api.Modulos.Miembros.FichasMedicas;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -61,6 +64,20 @@ public record SolicitudMovimiento(
     long? UnidadId = null,
     long? PatrullaId = null);
 
+/// <summary>Apoderado de la inscripción: uno ya registrado (ApoderadoId) o uno nuevo (Nuevo), nunca ambos.</summary>
+public record ApoderadoInscripcion(
+    long? ApoderadoId,
+    SolicitudApoderado? Nuevo,
+    [Required(ErrorMessage = "Indica el parentesco del apoderado.")][MaxLength(40, ErrorMessage = "El parentesco admite hasta 40 caracteres.")] string Parentesco,
+    bool EsPrincipal);
+
+/// <summary>Inscripción completa de un beneficiario: sus datos, apoderados, contactos y ficha médica (opcional).</summary>
+public record SolicitudInscripcion(
+    [Required(ErrorMessage = "Faltan los datos del beneficiario.")] SolicitudBeneficiario Beneficiario,
+    IReadOnlyList<ApoderadoInscripcion>? Apoderados,
+    IReadOnlyList<SolicitudContacto>? Contactos,
+    SolicitudFichaMedica? FichaMedica);
+
 /// <summary>
 /// Beneficiarios (niños, niñas y jóvenes). Los gestionan administración y dirigentes.
 /// Cada ingreso, cambio de unidad o patrulla, retiro y reingreso queda en el historial automáticamente.
@@ -69,7 +86,7 @@ public record SolicitudMovimiento(
 [ApiController]
 [Route("api/miembros/beneficiarios")]
 [Authorize(Policy = Politicas.Miembros)]
-public class BeneficiariosController(AppDbContext db, IUsuarioActual usuarioActual) : ControllerBase
+public class BeneficiariosController(AppDbContext db, IUsuarioActual usuarioActual, CifradoFichaMedica cifrado) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> Listar([FromQuery] FiltroBeneficiarios filtro, CancellationToken ct)
@@ -105,6 +122,19 @@ public class BeneficiariosController(AppDbContext db, IUsuarioActual usuarioActu
             b.UnidadId, b.Unidad, b.PatrullaId, b.Patrulla, b.Estado, b.FechaIngreso)).ToList();
 
         return Ok(ResponseData.Ok(new Pagina<BeneficiarioResumen>(elementos, pagina.Total, pagina.PaginaActual, pagina.Tamano)));
+    }
+
+    /// <summary>Indica si ya hay un beneficiario con ese RUT, para avisarlo en el formulario antes de pedir el resto de los datos.</summary>
+    [HttpGet("existe")]
+    public async Task<IActionResult> Existe([FromQuery] string? rut, CancellationToken ct)
+    {
+        if (!Rut.EsValido(rut)) return BadRequest(ResponseData.Error("El RUT no es válido."));
+        var normalizado = Rut.Normalizar(rut!);
+        var registrado = await db.Beneficiarios.AsNoTracking()
+            .Where(x => x.Rut == normalizado)
+            .Select(x => new RutRegistrado(true, x.Id, x.Nombres + " " + x.Apellidos))
+            .FirstOrDefaultAsync(ct);
+        return Ok(ResponseData.Ok(registrado ?? RutRegistrado.Libre));
     }
 
     [HttpGet("{id:long}")]
@@ -144,6 +174,127 @@ public class BeneficiariosController(AppDbContext db, IUsuarioActual usuarioActu
 
         return CreatedAtAction(nameof(Obtener), new { id = beneficiario.Id },
             ResponseData.Ok(await DetalleAsync(beneficiario.Id, ct), "Beneficiario registrado."));
+    }
+
+    /// <summary>
+    /// Inscribe a un beneficiario con sus apoderados, contactos de emergencia y ficha médica en una sola operación:
+    /// todo se guarda con un único SaveChanges (una transacción), así que si algo falla no queda nada a medias.
+    /// </summary>
+    [HttpPost("inscripcion")]
+    public async Task<IActionResult> Inscribir(SolicitudInscripcion solicitud, CancellationToken ct)
+    {
+        var datos = solicitud.Beneficiario;
+        var rut = Rut.Normalizar(datos.Rut);
+        if (ValidarFechas(datos) is { } errorFechas) return errorFechas;
+        if (await db.Beneficiarios.AnyAsync(b => b.Rut == rut, ct))
+        {
+            return Conflict(ResponseData.Error("Ya existe un beneficiario con ese RUT."));
+        }
+        if (await ValidarUbicacionAsync(datos.UnidadId, datos.PatrullaId, ct) is { } errorUbicacion) return errorUbicacion;
+
+        var contactos = solicitud.Contactos ?? [];
+        if (contactos.Count > ContactosController.Maximo)
+        {
+            return BadRequest(ResponseData.Error($"Se admiten hasta {ContactosController.Maximo} contactos de emergencia."));
+        }
+
+        var apoderados = solicitud.Apoderados ?? [];
+        if (await ValidarApoderadosAsync(apoderados, ct) is { } errorApoderados) return errorApoderados;
+
+        var beneficiario = new Beneficiario
+        {
+            Rut = rut,
+            Nombres = datos.Nombres.Trim(),
+            Apellidos = datos.Apellidos.Trim(),
+            FechaNacimiento = datos.FechaNacimiento,
+            Direccion = Limpio(datos.Direccion),
+            UnidadId = datos.UnidadId,
+            PatrullaId = datos.PatrullaId,
+            FechaIngreso = datos.FechaIngreso ?? Hoy(),
+            RegistroInstitucionalAnio = datos.RegistroInstitucionalAnio,
+            Estado = EstadosBeneficiario.Activo,
+        };
+        db.Beneficiarios.Add(beneficiario);
+        Registrar(beneficiario, TiposHistorial.Ingreso, beneficiario.FechaIngreso, null, beneficiario.UnidadId, null);
+
+        // El primero queda como principal si no se marcó ninguno.
+        var indicePrincipal = apoderados.ToList().FindIndex(a => a.EsPrincipal);
+        if (indicePrincipal < 0) indicePrincipal = 0;
+        for (var i = 0; i < apoderados.Count; i++)
+        {
+            var item = apoderados[i];
+            var vinculo = new BeneficiarioApoderado
+            {
+                Beneficiario = beneficiario,
+                Parentesco = item.Parentesco.Trim(),
+                EsPrincipal = i == indicePrincipal,
+            };
+            if (item.ApoderadoId is { } apoderadoId)
+            {
+                vinculo.ApoderadoId = apoderadoId;
+            }
+            else
+            {
+                var nuevo = new Apoderado();
+                ApoderadosController.Copiar(item.Nuevo!, nuevo, Rut.Normalizar(item.Nuevo!.Rut));
+                vinculo.Apoderado = nuevo;
+            }
+            db.BeneficiarioApoderado.Add(vinculo);
+        }
+
+        foreach (var datosContacto in contactos)
+        {
+            var contacto = new ContactoEmergencia { Beneficiario = beneficiario };
+            ContactosController.Copiar(datosContacto, contacto);
+            db.ContactosEmergencia.Add(contacto);
+        }
+
+        if (solicitud.FichaMedica is { } datosFicha)
+        {
+            var ficha = new FichaMedica { Beneficiario = beneficiario };
+            FichaMedicaController.Aplicar(ficha, datosFicha, cifrado, usuarioActual.Id);
+            db.FichasMedicas.Add(ficha);
+        }
+
+        await db.SaveChangesAsync(ct);
+        return CreatedAtAction(nameof(Obtener), new { id = beneficiario.Id },
+            ResponseData.Ok(await DetalleAsync(beneficiario.Id, ct), "Beneficiario inscrito."));
+    }
+
+    /// <summary>Cada apoderado es uno existente o uno nuevo; sin repetidos y sin RUT ya registrados.</summary>
+    private async Task<IActionResult?> ValidarApoderadosAsync(IReadOnlyList<ApoderadoInscripcion> apoderados, CancellationToken ct)
+    {
+        if (apoderados.Any(a => (a.ApoderadoId is null) == (a.Nuevo is null)))
+        {
+            return BadRequest(ResponseData.Error("Cada apoderado debe ser uno ya registrado o uno nuevo."));
+        }
+        if (apoderados.Count(a => a.EsPrincipal) > 1)
+        {
+            return BadRequest(ResponseData.Error("Solo puede haber un apoderado principal."));
+        }
+
+        var existentes = apoderados.Where(a => a.ApoderadoId is not null).Select(a => a.ApoderadoId!.Value).ToList();
+        if (existentes.Count != existentes.Distinct().Count())
+        {
+            return BadRequest(ResponseData.Error("Un apoderado está repetido."));
+        }
+        if (await db.Apoderados.CountAsync(a => existentes.Contains(a.Id), ct) != existentes.Count)
+        {
+            return BadRequest(ResponseData.Error("Uno de los apoderados elegidos no existe."));
+        }
+
+        var rutsNuevos = apoderados.Where(a => a.Nuevo is not null).Select(a => Rut.Normalizar(a.Nuevo!.Rut)).ToList();
+        if (rutsNuevos.Count != rutsNuevos.Distinct().Count())
+        {
+            return BadRequest(ResponseData.Error("Hay dos apoderados nuevos con el mismo RUT."));
+        }
+        var yaRegistrado = await db.Apoderados.Where(a => rutsNuevos.Contains(a.Rut))
+            .Select(a => a.Nombres + " " + a.Apellidos).FirstOrDefaultAsync(ct);
+        if (yaRegistrado is not null)
+        {
+            return Conflict(ResponseData.Error($"Ya existe un apoderado con ese RUT ({yaRegistrado}). Elígelo de la lista en vez de crearlo."));
+        }
+        return null;
     }
 
     [HttpPut("{id:long}")]

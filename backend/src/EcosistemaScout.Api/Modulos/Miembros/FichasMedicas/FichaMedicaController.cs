@@ -59,6 +59,15 @@ public class FichaMedicaController(AppDbContext db, CifradoFichaMedica cifrado, 
             db.FichasMedicas.Add(ficha);
         }
 
+        Aplicar(ficha, solicitud, cifrado, usuarioActual.Id);
+        await db.SaveChangesAsync(ct);
+
+        return Ok(ResponseData.Ok(await DtoAsync(beneficiarioId, ct), "Ficha médica guardada."));
+    }
+
+    /// <summary>Cifra y copia los datos en la ficha (también lo usa la inscripción de beneficiarios).</summary>
+    internal static void Aplicar(FichaMedica ficha, SolicitudFichaMedica solicitud, CifradoFichaMedica cifrado, long? usuarioId)
+    {
         ficha.Prevision = cifrado.Cifrar(solicitud.Prevision);
         ficha.GrupoSanguineo = cifrado.Cifrar(solicitud.GrupoSanguineo?.ToUpperInvariant());
         ficha.Alergias = cifrado.Cifrar(solicitud.Alergias);
@@ -66,10 +75,7 @@ public class FichaMedicaController(AppDbContext db, CifradoFichaMedica cifrado, 
         ficha.Medicamentos = cifrado.Cifrar(solicitud.Medicamentos);
         ficha.RestriccionesAlimentarias = cifrado.Cifrar(solicitud.RestriccionesAlimentarias);
         ficha.NecesidadesEmocionales = cifrado.Cifrar(solicitud.NecesidadesEmocionales);
-        ficha.ActualizadoPor = usuarioActual.Id;
-        await db.SaveChangesAsync(ct);
-
-        return Ok(ResponseData.Ok(await DtoAsync(beneficiarioId, ct), "Ficha médica guardada."));
+        ficha.ActualizadoPor = usuarioId;
     }
 
     private async Task<FichaMedicaDto> DtoAsync(long beneficiarioId, CancellationToken ct)

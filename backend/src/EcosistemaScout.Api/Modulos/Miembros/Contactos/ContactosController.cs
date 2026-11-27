@@ -77,7 +77,8 @@ public class ContactosController(AppDbContext db) : ControllerBase
             .Select(c => new ContactoDto(c.Id, c.Nombre, c.Parentesco, c.Telefono))
             .ToListAsync(ct);
 
-    private static void Copiar(SolicitudContacto solicitud, ContactoEmergencia contacto)
+    /// <summary>Copia los datos de la solicitud (también lo usa la inscripción de beneficiarios).</summary>
+    internal static void Copiar(SolicitudContacto solicitud, ContactoEmergencia contacto)
     {
         contacto.Nombre = solicitud.Nombre.Trim();
         contacto.Parentesco = string.IsNullOrWhiteSpace(solicitud.Parentesco) ? null : solicitud.Parentesco.Trim();
