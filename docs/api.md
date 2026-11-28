@@ -130,6 +130,22 @@ El frontend oculta los menús según el rol (`core/auth/permisos.ts`), pero la s
 | POST | `/api/base/usuarios/{id}/restablecer-password` | administrador | Genera una nueva contraseña temporal |
 | GET | `/api/base/roles` | administrador | Roles disponibles |
 
+### Base: inicio
+
+| Método | Ruta | Roles | Descripción |
+|---|---|---|---|
+| GET | `/api/base/inicio` | cualquier usuario | Resumen ya filtrado por rol, calculado con agregados en la base de datos |
+
+Cada sección del resumen viene solo si el rol puede verla (si no, llega en `null`):
+
+| Sección | Quién la recibe | Contenido |
+|---|---|---|
+| `miembros` | admin, dirigente, revisor | Beneficiarios activos por rama, voluntarios con cargo vigente, cupo por unidad y conteo de avisos (fichas con más de 3 meses, sin ficha, egresos, sobre la edad máxima). El dirigente ve solo su unidad (la del cargo vigente de su voluntario vinculado) y `alcance` trae su nombre |
+| `inventario` | admin, tesorería, dirigente, revisor | Bienes, préstamos activos y vencidos, y los 5 vencidos más antiguos |
+| `usuarios` | admin | Usuarios activos y cuántos tienen la contraseña temporal pendiente |
+| `misBeneficiarios` | apoderado | Sus beneficiarios activos con unidad, parentesco y avisos |
+| `finanzasProximamente` | admin, tesorería, revisor | Indica que se muestre la tarjeta de Finanzas mientras el módulo no esté listo |
+
 ### Reglas del PGS que valida la API
 
 | Regla | Respuesta |
@@ -157,7 +173,7 @@ El frontend oculta los menús según el rol (`core/auth/permisos.ts`), pero la s
 
 | Método | Ruta | Roles | Descripción |
 |---|---|---|---|
-| GET | `/api/miembros/beneficiarios` | admin, dirigente | Listado paginado (`buscar` por nombre o RUT, `unidadId`, `patrullaId`, `estado`) |
+| GET | `/api/miembros/beneficiarios` | admin, dirigente | Listado paginado (`buscar` por nombre o RUT, `unidadId`, `patrullaId`, `estado`, `aviso`: `egreso`, `edad-maxima`, `ficha-desactualizada` o `sin-ficha`; 400 si no es válido) |
 | GET | `/api/miembros/beneficiarios/{id}` | admin, dirigente | Ficha con edad, unidad y rama |
 | GET | `/api/miembros/beneficiarios/existe?rut=` | admin, dirigente | Indica si el RUT ya está inscrito (`{ existe, id, nombre }`); lo usa el formulario antes de pedir el resto |
 | POST | `/api/miembros/beneficiarios/inscripcion` | admin, dirigente | **Inscripción completa** en una sola transacción: beneficiario, apoderados (existentes o nuevos), contactos y ficha médica |

@@ -92,6 +92,7 @@ export interface FiltroBeneficiarios extends ConsultaPaginada {
   unidadId?: number | null;
   patrullaId?: number | null;
   estado?: EstadoBeneficiario | null;
+  aviso?: string | null;
 }
 
 /** Acceso a la API de beneficiarios y su historial. */

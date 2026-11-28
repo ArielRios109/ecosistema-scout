@@ -12,7 +12,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
-import { Router } from '@angular/router';
+import { MatChipsModule } from '@angular/material/chips';
+import { ActivatedRoute, Router } from '@angular/router';
 import { debounceTime, map, Subject } from 'rxjs';
 import { BeneficiarioResumen, EstadoBeneficiario, Unidad } from '../miembros.models';
 import { BeneficiariosService, UnidadesService } from '../miembros.service';
@@ -31,6 +32,7 @@ import { AvisosBeneficiario } from './avisos-beneficiario';
     MatButtonModule,
     MatIconModule,
     AvisosBeneficiario,
+    MatChipsModule,
     MatMenuModule,
     MatFormFieldModule,
     MatInputModule,
@@ -44,6 +46,7 @@ export class Beneficiarios implements OnInit {
   private readonly servicio = inject(BeneficiariosService);
   private readonly unidadesServicio = inject(UnidadesService);
   private readonly router = inject(Router);
+  private readonly ruta = inject(ActivatedRoute);
   protected readonly acciones = inject(AccionesBeneficiario);
 
   protected readonly beneficiarios = signal<BeneficiarioResumen[]>([]);
@@ -55,6 +58,14 @@ export class Beneficiarios implements OnInit {
   protected buscar = '';
   protected unidadId: number | null = null;
   protected estado: EstadoBeneficiario | null = 'activo';
+  /** Filtro por aviso que llega desde el inicio (?aviso=egreso, ?aviso=ficha-desactualizada...). */
+  protected aviso: string | null = null;
+  protected readonly etiquetasAviso: Record<string, string> = {
+    egreso: 'En edad de egreso (18+)',
+    'edad-maxima': 'Superan la edad máxima (21+)',
+    'ficha-desactualizada': 'Ficha médica con más de 3 meses',
+    'sin-ficha': 'Sin ficha médica',
+  };
   private readonly busqueda$ = new Subject<string>();
 
   protected readonly esMovil = toSignal(
@@ -66,6 +77,9 @@ export class Beneficiarios implements OnInit {
   protected readonly columnas = ['nombre', 'rut', 'edad', 'unidad', 'estado', 'acciones'];
 
   ngOnInit(): void {
+    const parametros = this.ruta.snapshot.queryParamMap;
+    this.aviso = parametros.get('aviso');
+    this.unidadId = parametros.has('unidadId') ? Number(parametros.get('unidadId')) : null;
     this.unidadesServicio.listar(true).subscribe((unidades) => this.unidades.set(unidades));
     this.busqueda$.pipe(debounceTime(350)).subscribe(() => {
       this.pagina = 1;
@@ -101,6 +115,16 @@ export class Beneficiarios implements OnInit {
     this.router.navigate(['/miembros/beneficiarios', beneficiario.id, 'editar']);
   }
 
+  protected quitarAviso(): void {
+    this.aviso = null;
+    this.router.navigate([], {
+      queryParams: { aviso: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+    this.alFiltrar();
+  }
+
   protected retirarOReingresar(beneficiario: BeneficiarioResumen): void {
     this.acciones.cambiarEstado(beneficiario).subscribe(() => this.cargar());
   }
@@ -113,6 +137,7 @@ export class Beneficiarios implements OnInit {
         buscar: this.buscar,
         unidadId: this.unidadId,
         estado: this.estado,
+        aviso: this.aviso,
       })
       .subscribe((pagina) => {
         this.beneficiarios.set(pagina.elementos);

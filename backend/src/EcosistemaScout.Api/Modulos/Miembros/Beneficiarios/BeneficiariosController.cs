@@ -38,12 +38,44 @@ public static class Edades
     public static string? Aviso(int edad) => edad >= Maxima ? "edad-maxima" : edad >= Egreso ? "egreso" : null;
 }
 
+/// <summary>
+/// Avisos por los que se puede filtrar el listado (los usa también el resumen de inicio para contarlos).
+/// Las condiciones se traducen a SQL, así que el conteo se hace en la base de datos.
+/// </summary>
+public static class AvisosBeneficiario
+{
+    public const string Egreso = "egreso";
+    public const string EdadMaxima = "edad-maxima";
+    public const string FichaDesactualizada = "ficha-desactualizada";
+    public const string SinFicha = "sin-ficha";
+
+    public static readonly IReadOnlyList<string> Todos = [Egreso, EdadMaxima, FichaDesactualizada, SinFicha];
+
+    public static IQueryable<Beneficiario> Filtrar(IQueryable<Beneficiario> consulta, string aviso)
+    {
+        var hoy = DateOnly.FromDateTime(DateTime.Today);
+        var cumplioEgreso = hoy.AddYears(-Edades.Egreso);
+        var cumplioMaxima = hoy.AddYears(-Edades.Maxima);
+        var limiteFicha = DateTime.UtcNow.AddMonths(-VigenciaFicha.Meses);
+        return aviso switch
+        {
+            Egreso => consulta.Where(b => b.FechaNacimiento <= cumplioEgreso && b.FechaNacimiento > cumplioMaxima),
+            EdadMaxima => consulta.Where(b => b.FechaNacimiento <= cumplioMaxima),
+            FichaDesactualizada => consulta.Where(b => b.FichaMedica != null && b.FichaMedica.UpdatedAt < limiteFicha),
+            SinFicha => consulta.Where(b => b.FichaMedica == null),
+            _ => consulta,
+        };
+    }
+}
+
 public class FiltroBeneficiarios : ConsultaPaginada
 {
     public long? UnidadId { get; set; }
     public long? PatrullaId { get; set; }
     /// <summary>activo o retirado; vacío = todos.</summary>
     public string? Estado { get; set; }
+    /// <summary>Uno de <see cref="AvisosBeneficiario.Todos"/>, para ver solo a quienes tienen ese aviso.</summary>
+    public string? Aviso { get; set; }
 }
 
 public record BeneficiarioResumen(
@@ -118,6 +150,11 @@ public class BeneficiariosController(AppDbContext db, IUsuarioActual usuarioActu
         if (filtro.UnidadId is { } unidadId) consulta = consulta.Where(b => b.UnidadId == unidadId);
         if (filtro.PatrullaId is { } patrullaId) consulta = consulta.Where(b => b.PatrullaId == patrullaId);
         if (!string.IsNullOrWhiteSpace(filtro.Estado)) consulta = consulta.Where(b => b.Estado == filtro.Estado);
+        if (!string.IsNullOrWhiteSpace(filtro.Aviso))
+        {
+            if (!AvisosBeneficiario.Todos.Contains(filtro.Aviso)) return BadRequest(ResponseData.Error("El aviso no es válido."));
+            consulta = AvisosBeneficiario.Filtrar(consulta, filtro.Aviso);
+        }
 
         var pagina = await consulta
             .OrderBy(b => b.Apellidos).ThenBy(b => b.Nombres)
