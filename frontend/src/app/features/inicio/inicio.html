@@ -1,26 +1,201 @@
 <h1 class="titulo-grande m-0">Hola, {{ auth.usuario()?.nombre }}</h1>
-<p class="texto-secundario mt-1 mb-4">Bienvenido al sistema de gestión del grupo scout.</p>
+<p class="texto-secundario mt-1 mb-3">
+  {{
+    resumen()?.miembros
+      ? 'Resumen de ' +
+        (resumen()!.miembros!.alcance === 'Todo el grupo'
+          ? 'todo el grupo'
+          : resumen()!.miembros!.alcance) +
+        '.'
+      : 'Bienvenido a Talí.'
+  }}
+</p>
 
-<mat-card appearance="outlined" class="estado">
-  <mat-card-header>
-    <mat-card-title>Estado del sistema</mat-card-title>
-  </mat-card-header>
-  <mat-card-content>
-    <ul class="lista flex-col gap-3 m-0 mt-2">
-      <li class="flex items-center gap-2">
-        <mat-icon [class]="api()">{{ icono(api()) }}</mat-icon>
-        <span>API: {{ texto(api()) }}</span>
-      </li>
-      <li class="flex items-center gap-2">
-        <mat-icon [class]="baseDatos()">{{ icono(baseDatos()) }}</mat-icon>
-        <span>Base de datos: {{ texto(baseDatos()) }}</span>
-      </li>
-    </ul>
-  </mat-card-content>
-  <mat-card-actions>
-    <button mat-button (click)="verificar()">
-      <mat-icon>refresh</mat-icon>
-      Volver a verificar
-    </button>
-  </mat-card-actions>
-</mat-card>
+@if (resumen(); as r) {
+  @if (alertas().length) {
+    <section class="alertas mb-3" aria-label="Alertas">
+      @for (a of alertas(); track a.texto) {
+        @if (puedeEntrar(a.modulo)) {
+          <a
+            class="alerta flex items-center gap-2 p-3"
+            [class.grave]="a.grave"
+            [routerLink]="a.enlace"
+            [queryParams]="a.parametros"
+          >
+            <mat-icon>{{ a.icono }}</mat-icon>
+            <span class="flex-1"
+              ><strong>{{ a.cantidad }}</strong> {{ a.texto }}</span
+            >
+            <mat-icon class="flecha">chevron_right</mat-icon>
+          </a>
+        } @else {
+          <div class="alerta flex items-center gap-2 p-3" [class.grave]="a.grave">
+            <mat-icon>{{ a.icono }}</mat-icon>
+            <span
+              ><strong>{{ a.cantidad }}</strong> {{ a.texto }}</span
+            >
+          </div>
+        }
+      }
+    </section>
+  }
+
+  <div class="grilla">
+    @if (r.miembros; as m) {
+      <mat-card appearance="outlined">
+        <mat-card-header>
+          <mat-icon matCardAvatar>groups</mat-icon>
+          <mat-card-title>{{ m.beneficiariosActivos }} beneficiarios activos</mat-card-title>
+          <mat-card-subtitle>{{ m.voluntarios }} voluntarios con cargo vigente</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <ul class="lista-simple mt-2">
+            @for (rama of m.porRama; track rama.rama) {
+              <li class="flex justify-between">
+                <span>{{ etiquetaRama(rama.rama) }}</span><strong>{{ rama.beneficiarios }}</strong>
+              </li>
+            }
+          </ul>
+        </mat-card-content>
+        @if (puedeEntrar('miembros')) {
+          <mat-card-actions
+            ><a mat-button routerLink="/miembros/beneficiarios"
+              >Ver beneficiarios</a
+            ></mat-card-actions
+          >
+        }
+      </mat-card>
+
+      <mat-card appearance="outlined">
+        <mat-card-header>
+          <mat-icon matCardAvatar>diversity_3</mat-icon>
+          <mat-card-title>Cupos por unidad</mat-card-title>
+          <mat-card-subtitle>Máximo 32 beneficiarios activos por unidad</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <ul class="lista-simple mt-2">
+            @for (u of m.unidades; track u.id) {
+              <li>
+                <div class="flex justify-between">
+                  <span>{{ u.nombre }}</span><span [class.cerca]="u.activos >= umbralCupo"
+                    >{{ u.activos }}/{{ u.maximo }}</span
+                  >
+                </div>
+                <mat-progress-bar
+                  mode="determinate"
+                  [value]="porcentaje(u.activos, u.maximo)"
+                  [class.cerca]="u.activos >= umbralCupo"
+                />
+              </li>
+            } @empty {
+              <li class="texto-secundario">No hay unidades activas.</li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    @if (r.inventario; as inv) {
+      <mat-card appearance="outlined">
+        <mat-card-header>
+          <mat-icon matCardAvatar>inventory_2</mat-icon>
+          <mat-card-title>{{ inv.bienes }} bienes en inventario</mat-card-title>
+          <mat-card-subtitle
+            >{{ inv.prestamosActivos }} préstamos activos · {{ inv.prestamosVencidos }}
+            {{ inv.prestamosVencidos === 1 ? 'vencido' : 'vencidos' }}</mat-card-subtitle
+          >
+        </mat-card-header>
+        <mat-card-content>
+          @if (inv.vencidos.length) {
+            <p class="subtitulo mt-2 mb-1">Préstamos vencidos</p>
+            <ul class="lista-simple">
+              @for (p of inv.vencidos; track p.bienId + p.destinatario) {
+                <li>
+                  <a [routerLink]="['/inventario/bienes', p.bienId]">{{ p.bien }}</a>
+                  <span class="texto-secundario">
+                    · {{ p.destinatario }} · debía volver el
+                    {{ fecha(p.fechaDevolucionEsperada) }}</span
+                  >
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="texto-secundario mt-2">No hay préstamos vencidos.</p>
+          }
+        </mat-card-content>
+        <mat-card-actions
+          ><a mat-button routerLink="/inventario/bienes">Ver inventario</a></mat-card-actions
+        >
+      </mat-card>
+    }
+
+    @if (r.usuarios; as u) {
+      <mat-card appearance="outlined">
+        <mat-card-header>
+          <mat-icon matCardAvatar>manage_accounts</mat-icon>
+          <mat-card-title>{{ u.activos }} usuarios activos</mat-card-title>
+          <mat-card-subtitle>
+            {{
+              u.conPasswordTemporal
+                ? u.conPasswordTemporal + ' con contraseña temporal pendiente'
+                : 'Todos cambiaron su contraseña temporal'
+            }}
+          </mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-actions
+          ><a mat-button routerLink="/usuarios">Administrar usuarios</a></mat-card-actions
+        >
+      </mat-card>
+    }
+
+    @if (r.finanzasProximamente) {
+      <mat-card appearance="outlined" class="proximamente">
+        <mat-card-header>
+          <mat-icon matCardAvatar>account_balance_wallet</mat-icon>
+          <mat-card-title>Finanzas</mat-card-title>
+          <mat-card-subtitle
+            >Próximamente: cuotas, ingresos y egresos, y libro de control
+            mensual.</mat-card-subtitle
+          >
+        </mat-card-header>
+      </mat-card>
+    }
+
+    @for (b of r.misBeneficiarios ?? []; track b.id) {
+      <mat-card appearance="outlined">
+        <mat-card-header>
+          <mat-icon matCardAvatar>child_care</mat-icon>
+          <mat-card-title>{{ b.nombre }}</mat-card-title>
+          <mat-card-subtitle>{{ b.unidad }} · {{ b.parentesco }}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content class="flex-col gap-1 mt-2">
+          @if (b.estadoFicha !== 'al-dia') {
+            <span class="aviso flex items-center gap-1">
+              <mat-icon>medical_information</mat-icon>
+              {{
+                b.estadoFicha === 'sin-ficha'
+                  ? 'Falta completar la ficha médica.'
+                  : 'La ficha médica tiene más de 3 meses: conviene actualizarla.'
+              }}
+            </span>
+          }
+          @if (b.avisoEdad === 'egreso') {
+            <span class="aviso flex items-center gap-1"
+              ><mat-icon>school</mat-icon>Está en edad de egreso.</span
+            >
+          }
+          @if (b.estadoFicha === 'al-dia' && !b.avisoEdad) {
+            <span class="texto-secundario">Todo al día.</span>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+
+  @if (vacio()) {
+    <p class="texto-secundario texto-centro p-4">
+      Por ahora no hay información para tu rol. Los módulos que te corresponden aparecerán aquí
+      cuando estén listos.
+    </p>
+  }
+}
