@@ -23,8 +23,8 @@ public static class Ramas
         ["lobatos"] = new("seisena", "seisenas", 6),
         ["guias"] = new("patrulla", "patrullas", 8),
         ["scouts"] = new("patrulla", "patrullas", 8),
-        ["pioneros"] = new("equipo", "equipos", null),
-        ["caminantes"] = new("comunidad", "comunidades", null),
+        ["pioneros"] = new("comunidad", "comunidades", null),
+        ["caminantes"] = new("equipo", "equipos", null),
     };
 
     public static IReadOnlyList<string> Todas { get; } = [.. Subgrupos.Keys];
