@@ -5,6 +5,7 @@ using EcosistemaScout.Api.Modulos.Base.Autorizacion;
 using EcosistemaScout.Api.Modulos.Miembros.Apoderados;
 using EcosistemaScout.Api.Modulos.Miembros.Contactos;
 using EcosistemaScout.Api.Modulos.Miembros.FichasMedicas;
+using EcosistemaScout.Api.Modulos.Miembros.Unidades;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,16 @@ public static class TiposHistorial
     public const string Reingreso = "reingreso";
 }
 
+/// <summary>Reglas de edad del PGS: a los 18 corresponde preparar el egreso y desde los 21 ya no se participa.</summary>
+public static class Edades
+{
+    public const int Egreso = 18;
+    public const int Maxima = 21;
+
+    /// <summary>"egreso" entre 18 y 20 años, "edad-maxima" desde los 21, null si no hay aviso.</summary>
+    public static string? Aviso(int edad) => edad >= Maxima ? "edad-maxima" : edad >= Egreso ? "egreso" : null;
+}
+
 public class FiltroBeneficiarios : ConsultaPaginada
 {
     public long? UnidadId { get; set; }
@@ -37,12 +48,13 @@ public class FiltroBeneficiarios : ConsultaPaginada
 
 public record BeneficiarioResumen(
     long Id, string Rut, string Nombres, string Apellidos, DateOnly FechaNacimiento, int Edad,
-    long UnidadId, string Unidad, long? PatrullaId, string? Patrulla, string Estado, DateOnly FechaIngreso);
+    long UnidadId, string Unidad, long? PatrullaId, string? Patrulla, string Estado, DateOnly FechaIngreso,
+    string? AvisoEdad, string EstadoFicha);
 
 public record BeneficiarioDetalle(
     long Id, string Rut, string Nombres, string Apellidos, DateOnly FechaNacimiento, int Edad, string? Direccion,
     long UnidadId, string Unidad, string Rama, long? PatrullaId, string? Patrulla, string Estado, DateOnly FechaIngreso,
-    short? RegistroInstitucionalAnio);
+    short? RegistroInstitucionalAnio, string? AvisoEdad, string EstadoFicha);
 
 public record MovimientoHistorial(
     long Id, string Tipo, DateOnly Fecha, string? UnidadOrigen, string? UnidadDestino, string? Detalle, string? Usuario);
@@ -113,13 +125,15 @@ public class BeneficiariosController(AppDbContext db, IUsuarioActual usuarioActu
             {
                 b.Id, b.Rut, b.Nombres, b.Apellidos, b.FechaNacimiento, b.UnidadId, Unidad = b.Unidad.Nombre,
                 b.PatrullaId, Patrulla = b.Patrulla != null ? b.Patrulla.Nombre : null, b.Estado, b.FechaIngreso,
+                FichaActualizada = b.FichaMedica != null ? (DateTime?)b.FichaMedica.UpdatedAt : null,
             })
             .PaginarAsync(filtro, ct);
 
         var hoy = Hoy();
         var elementos = pagina.Elementos.Select(b => new BeneficiarioResumen(
             b.Id, Rut.Formatear(b.Rut), b.Nombres, b.Apellidos, b.FechaNacimiento, Edad(b.FechaNacimiento, hoy),
-            b.UnidadId, b.Unidad, b.PatrullaId, b.Patrulla, b.Estado, b.FechaIngreso)).ToList();
+            b.UnidadId, b.Unidad, b.PatrullaId, b.Patrulla, b.Estado, b.FechaIngreso,
+            Edades.Aviso(Edad(b.FechaNacimiento, hoy)), VigenciaFicha.Estado(b.FichaActualizada))).ToList();
 
         return Ok(ResponseData.Ok(new Pagina<BeneficiarioResumen>(elementos, pagina.Total, pagina.PaginaActual, pagina.Tamano)));
     }
@@ -304,7 +318,7 @@ public class BeneficiariosController(AppDbContext db, IUsuarioActual usuarioActu
         if (beneficiario is null) return NoEncontrado();
 
         var rut = Rut.Normalizar(solicitud.Rut);
-        if (ValidarFechas(solicitud) is { } errorFechas) return errorFechas;
+        if (ValidarFechas(solicitud, beneficiario.Estado == EstadosBeneficiario.Activo) is { } errorFechas) return errorFechas;
         if (await db.Beneficiarios.AnyAsync(b => b.Id != id && b.Rut == rut, ct))
         {
             return Conflict(ResponseData.Error("Ya existe otro beneficiario con ese RUT."));
@@ -317,7 +331,7 @@ public class BeneficiariosController(AppDbContext db, IUsuarioActual usuarioActu
             return Conflict(ResponseData.Error("El beneficiario está retirado. Reingrésalo para asignarle otra unidad o patrulla."));
         }
         if ((cambiaUnidad || cambiaPatrulla)
-            && await ValidarUbicacionAsync(solicitud.UnidadId, solicitud.PatrullaId, ct) is { } errorUbicacion)
+            && await ValidarUbicacionAsync(solicitud.UnidadId, solicitud.PatrullaId, ct, id) is { } errorUbicacion)
         {
             return errorUbicacion;
         }
@@ -381,12 +395,13 @@ public class BeneficiariosController(AppDbContext db, IUsuarioActual usuarioActu
             return Conflict(ResponseData.Error("El beneficiario ya está activo."));
         }
 
+        if (ErrorEdadMaxima(beneficiario.FechaNacimiento) is { } errorEdad) return errorEdad;
         var fecha = solicitud.Fecha ?? Hoy();
         if (fecha > Hoy()) return BadRequest(ResponseData.Error("La fecha de reingreso no puede ser futura."));
 
         var unidadId = solicitud.UnidadId ?? beneficiario.UnidadId;
         var patrullaId = solicitud.UnidadId is null ? solicitud.PatrullaId ?? beneficiario.PatrullaId : solicitud.PatrullaId;
-        if (await ValidarUbicacionAsync(unidadId, patrullaId, ct) is { } errorUbicacion) return errorUbicacion;
+        if (await ValidarUbicacionAsync(unidadId, patrullaId, ct, id) is { } errorUbicacion) return errorUbicacion;
 
         Registrar(beneficiario, TiposHistorial.Reingreso, fecha, beneficiario.UnidadId, unidadId, Limpio(solicitud.Detalle));
         beneficiario.Estado = EstadosBeneficiario.Activo;
@@ -437,46 +452,72 @@ public class BeneficiariosController(AppDbContext db, IUsuarioActual usuarioActu
 
     private async Task<BeneficiarioDetalle?> DetalleAsync(long id, CancellationToken ct)
     {
-        var b = await db.Beneficiarios.AsNoTracking().Include(x => x.Unidad).Include(x => x.Patrulla)
+        var b = await db.Beneficiarios.AsNoTracking().Include(x => x.Unidad).Include(x => x.Patrulla).Include(x => x.FichaMedica)
             .FirstOrDefaultAsync(x => x.Id == id, ct);
-        return b is null
-            ? null
-            : new BeneficiarioDetalle(b.Id, Rut.Formatear(b.Rut), b.Nombres, b.Apellidos, b.FechaNacimiento,
-                Edad(b.FechaNacimiento, Hoy()), b.Direccion, b.UnidadId, b.Unidad.Nombre, b.Unidad.Rama,
-                b.PatrullaId, b.Patrulla?.Nombre, b.Estado, b.FechaIngreso, b.RegistroInstitucionalAnio);
+        if (b is null) return null;
+
+        var edad = Edad(b.FechaNacimiento, Hoy());
+        return new BeneficiarioDetalle(b.Id, Rut.Formatear(b.Rut), b.Nombres, b.Apellidos, b.FechaNacimiento,
+            edad, b.Direccion, b.UnidadId, b.Unidad.Nombre, b.Unidad.Rama, b.PatrullaId, b.Patrulla?.Nombre, b.Estado,
+            b.FechaIngreso, b.RegistroInstitucionalAnio, Edades.Aviso(edad), VigenciaFicha.Estado(b.FichaMedica?.UpdatedAt));
     }
 
-    /// <summary>La unidad debe existir y estar activa; la patrulla (opcional) debe ser de esa unidad y estar activa.</summary>
-    private async Task<IActionResult?> ValidarUbicacionAsync(long unidadId, long? patrullaId, CancellationToken ct)
+    /// <summary>
+    /// La unidad debe existir, estar activa y tener cupo (máximo 32 activos); la patrulla, si viene, debe ser de esa
+    /// unidad, estar activa y no superar el máximo de su tipo (seisena 6, patrulla 8). `beneficiarioId` excluye al
+    /// propio beneficiario del conteo cuando se edita.
+    /// </summary>
+    private async Task<IActionResult?> ValidarUbicacionAsync(long unidadId, long? patrullaId, CancellationToken ct, long? beneficiarioId = null)
     {
         var unidad = await db.Unidades.AsNoTracking().FirstOrDefaultAsync(u => u.Id == unidadId, ct);
         if (unidad is null) return BadRequest(ResponseData.Error("Selecciona una unidad válida."));
         if (!unidad.Activa) return Conflict(ResponseData.Error("La unidad seleccionada está desactivada."));
 
+        var activos = db.Beneficiarios.Where(b => b.Estado == EstadosBeneficiario.Activo && b.Id != beneficiarioId);
+        if (await activos.CountAsync(b => b.UnidadId == unidadId, ct) >= Ramas.MaximoPorUnidad)
+        {
+            return Conflict(ResponseData.Error($"{unidad.Nombre} ya tiene {Ramas.MaximoPorUnidad} beneficiarios activos, el máximo por unidad."));
+        }
+
         if (patrullaId is { } idPatrulla)
         {
             var patrulla = await db.Patrullas.AsNoTracking().FirstOrDefaultAsync(p => p.Id == idPatrulla, ct);
+            var subgrupo = Ramas.Subgrupo(unidad.Rama);
             if (patrulla is null || patrulla.UnidadId != unidadId)
             {
-                return BadRequest(ResponseData.Error("La patrulla no pertenece a la unidad seleccionada."));
+                return BadRequest(ResponseData.Error($"La {subgrupo.Nombre} no pertenece a la unidad seleccionada."));
             }
-            if (!patrulla.Activa) return Conflict(ResponseData.Error("La patrulla seleccionada está desactivada."));
+            if (!patrulla.Activa) return Conflict(ResponseData.Error($"La {subgrupo.Nombre} seleccionada está desactivada."));
+            if (subgrupo.Maximo is { } maximo && await activos.CountAsync(b => b.PatrullaId == idPatrulla, ct) >= maximo)
+            {
+                return Conflict(ResponseData.Error($"La {subgrupo.Nombre} {patrulla.Nombre} ya tiene {maximo} integrantes, el máximo."));
+            }
         }
         return null;
     }
 
-    private BadRequestObjectResult? ValidarFechas(SolicitudBeneficiario solicitud)
+    /// <summary>Fechas coherentes y, si va a quedar activo, que no supere la edad máxima.</summary>
+    private BadRequestObjectResult? ValidarFechas(SolicitudBeneficiario solicitud, bool quedaActivo = true)
     {
         var hoy = Hoy();
         if (solicitud.FechaNacimiento == default || solicitud.FechaNacimiento > hoy || solicitud.FechaNacimiento.Year < 1900)
         {
             return BadRequest(ResponseData.Error("Ingresa una fecha de nacimiento válida."));
         }
+        if (quedaActivo && ErrorEdadMaxima(solicitud.FechaNacimiento) is { } errorEdad) return errorEdad;
         if (solicitud.FechaIngreso is { } ingreso && (ingreso > hoy || ingreso < solicitud.FechaNacimiento))
         {
             return BadRequest(ResponseData.Error("La fecha de ingreso no puede ser futura ni anterior al nacimiento."));
         }
         return null;
+    }
+
+    private BadRequestObjectResult? ErrorEdadMaxima(DateOnly nacimiento)
+    {
+        var edad = Edad(nacimiento, Hoy());
+        return edad >= Edades.Maxima
+            ? BadRequest(ResponseData.Error($"Con {edad} años supera la edad máxima para participar ({Edades.Maxima})."))
+            : null;
     }
 
     private NotFoundObjectResult NoEncontrado() => NotFound(ResponseData.Error("No se encontró el beneficiario."));

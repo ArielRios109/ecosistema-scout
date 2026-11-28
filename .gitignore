@@ -27,3 +27,6 @@ npm-debug.log*
 .idea/
 Thumbs.db
 .DS_Store
+
+# Archivos subidos en desarrollo (fotos de bienes)
+backend/src/EcosistemaScout.Api/archivos/

@@ -8,6 +8,13 @@ export interface Patrulla {
   beneficiarios: number;
 }
 
+/** Cómo se llaman los subgrupos de una rama (seisena, patrulla...) y su máximo de integrantes (null = sin límite). */
+export interface TipoSubgrupo {
+  nombre: string;
+  plural: string;
+  maximo: number | null;
+}
+
 export interface Unidad {
   id: number;
   nombre: string;
@@ -15,7 +22,19 @@ export interface Unidad {
   activa: boolean;
   beneficiarios: number;
   patrullas: Patrulla[];
+  /** Máximo de beneficiarios activos de la unidad (32 según el PGS). */
+  maximo: number;
+  subgrupo: TipoSubgrupo;
 }
+
+/** Subgrupo genérico para cuando todavía no se conoce la rama. */
+export const SUBGRUPO_GENERICO: TipoSubgrupo = {
+  nombre: 'patrulla',
+  plural: 'patrullas',
+  maximo: null,
+};
+
+export const capitalizar = (texto: string) => texto.charAt(0).toUpperCase() + texto.slice(1);
 
 /** Ramas scout con su nombre habitual. */
 export const RAMAS: { valor: string; etiqueta: string }[] = [
@@ -46,6 +65,9 @@ export interface BeneficiarioResumen {
   patrulla: string | null;
   estado: EstadoBeneficiario;
   fechaIngreso: string;
+  /** "egreso" desde los 18 años y "edad-maxima" desde los 21 (PGS). */
+  avisoEdad: 'egreso' | 'edad-maxima' | null;
+  estadoFicha: 'al-dia' | 'desactualizada' | 'sin-ficha';
 }
 
 export interface BeneficiarioDetalle extends BeneficiarioResumen {
@@ -170,9 +192,14 @@ export interface FichaMedica {
   necesidadesEmocionales: string | null;
   actualizadaEl: string | null;
   actualizadaPor: string | null;
+  /** Más de 3 meses desde su último cambio. */
+  desactualizada: boolean;
 }
 
-export type SolicitudFichaMedica = Omit<FichaMedica, 'existe' | 'actualizadaEl' | 'actualizadaPor'>;
+export type SolicitudFichaMedica = Omit<
+  FichaMedica,
+  'existe' | 'actualizadaEl' | 'actualizadaPor' | 'desactualizada'
+>;
 
 export const GRUPOS_SANGUINEOS = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
 export const PREVISIONES = ['Fonasa', 'Isapre', 'Capredena', 'Dipreca', 'Particular', 'Otra'];

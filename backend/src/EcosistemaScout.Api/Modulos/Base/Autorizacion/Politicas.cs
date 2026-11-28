@@ -17,7 +17,10 @@ public static class Politicas
     public const string Administracion = "Administracion";
 
     // Escritura (crear, modificar, anular). El revisor solo consulta.
+    /// <summary>Registrar préstamos y devoluciones (también el dirigente).</summary>
     public const string InventarioEscritura = "InventarioEscritura";
+    /// <summary>Administrar bienes, categorías y bajas.</summary>
+    public const string InventarioGestion = "InventarioGestion";
     public const string FinanzasEscritura = "FinanzasEscritura";
 
     private static readonly Dictionary<string, string[]> RolesPorPolitica = new()
@@ -28,6 +31,7 @@ public static class Politicas
         [Portal] = [Roles.Administrador, Roles.Tesoreria, Roles.Apoderado],
         [Administracion] = [Roles.Administrador],
         [InventarioEscritura] = [Roles.Administrador, Roles.Tesoreria, Roles.Dirigente],
+        [InventarioGestion] = [Roles.Administrador, Roles.Tesoreria],
         [FinanzasEscritura] = [Roles.Administrador, Roles.Tesoreria],
     };
 

@@ -16,6 +16,7 @@ import {
 } from '../miembros.models';
 import { BeneficiariosService } from '../miembros.service';
 import { AccionesBeneficiario } from './acciones-beneficiario';
+import { AvisosBeneficiario } from './avisos-beneficiario';
 
 /** Ficha del beneficiario: datos, apoderados, contactos, ficha médica e historial de movimientos. */
 @Component({
@@ -29,6 +30,7 @@ import { AccionesBeneficiario } from './acciones-beneficiario';
     ApoderadosBeneficiario,
     ContactosBeneficiario,
     FichaMedicaBeneficiario,
+    AvisosBeneficiario,
   ],
   providers: [AccionesBeneficiario],
   templateUrl: './beneficiario-detalle.html',

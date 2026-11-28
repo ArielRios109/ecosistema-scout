@@ -41,6 +41,7 @@ builder.Services.AddDataProtection()
     .SetApplicationName("Tali")
     .PersistKeysToDbContext<AppDbContext>();
 builder.Services.AddSingleton<CifradoFichaMedica>();
+builder.Services.AddSingleton<IAlmacenArchivos, AlmacenArchivosLocal>();
 
 // ----- Usuarios y roles (ASP.NET Identity) -----
 builder.Services
@@ -89,6 +90,7 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<ServicioTokens>();
 builder.Services.AddScoped<DatosIniciales>();
 builder.Services.AddScoped<DatosDemoMiembros>();
+builder.Services.AddScoped<DatosDemoInventario>();
 
 // ----- CORS para el frontend Angular -----
 const string PoliticaFrontend = "frontend";
@@ -125,8 +127,9 @@ using (var scope = app.Services.CreateScope())
     await scope.ServiceProvider.GetRequiredService<DatosIniciales>().CargarAsync(usuariosDemo);
     if (usuariosDemo)
     {
-        // Datos ficticios de Miembros para probar la aplicación (solo junto con los usuarios demo).
+        // Datos ficticios de Miembros e Inventario para probar la aplicación (solo junto con los usuarios demo).
         await scope.ServiceProvider.GetRequiredService<DatosDemoMiembros>().CargarAsync();
+        await scope.ServiceProvider.GetRequiredService<DatosDemoInventario>().CargarAsync();
     }
 }
 

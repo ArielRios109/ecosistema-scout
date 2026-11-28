@@ -137,6 +137,42 @@ public class BeneficiariosTests(FabricaApiPruebas fabrica) : IClassFixture<Fabri
         Assert.Equal(HttpStatusCode.Forbidden, (await tesoreria.GetAsync("/api/miembros/beneficiarios")).StatusCode);
     }
 
+    [Fact]
+    public async Task Seisena_NoAdmiteMasDeSeisIntegrantes()
+    {
+        var admin = await fabrica.ClienteComoAsync("admin@demo.cl");
+        var unidad = (await (await admin.PostAsJsonAsync("/api/miembros/unidades",
+            new SolicitudUnidad($"Manada {Guid.NewGuid():N}"[..20], "lobatos"))).LeerAsync<UnidadDto>()).Datos!;
+        var seisena = (await (await admin.PostAsJsonAsync($"/api/miembros/unidades/{unidad.Id}/patrullas",
+            new SolicitudPatrulla("Seisena Gris"))).LeerAsync<PatrullaDto>()).Datos!;
+        for (var i = 0; i < 6; i++)
+        {
+            await admin.PostAsJsonAsync("/api/miembros/beneficiarios", Solicitud(unidad.Id, seisena.Id));
+        }
+
+        var septimo = await admin.PostAsJsonAsync("/api/miembros/beneficiarios", Solicitud(unidad.Id, seisena.Id));
+
+        Assert.Equal(HttpStatusCode.Conflict, septimo.StatusCode);
+        Assert.Contains("seisena", (await septimo.LeerAsync<object>()).Mensaje);
+    }
+
+    [Fact]
+    public async Task Inscribir_ConVeintiunAnios_SeRechaza_YConDieciochoAvisaEgreso()
+    {
+        var (cliente, unidad) = await PrepararAsync();
+        var hoy = DateOnly.FromDateTime(DateTime.Today);
+
+        var mayor = await cliente.PostAsJsonAsync("/api/miembros/beneficiarios",
+            Solicitud(unidad.Id) with { FechaNacimiento = hoy.AddYears(-21), FechaIngreso = hoy });
+        var egreso = (await (await cliente.PostAsJsonAsync("/api/miembros/beneficiarios",
+            Solicitud(unidad.Id) with { FechaNacimiento = hoy.AddYears(-18).AddDays(-1), FechaIngreso = hoy }))
+            .LeerAsync<BeneficiarioDetalle>()).Datos!;
+
+        Assert.Equal(HttpStatusCode.BadRequest, mayor.StatusCode);
+        Assert.Equal("egreso", egreso.AvisoEdad);
+        Assert.Equal("sin-ficha", egreso.EstadoFicha);
+    }
+
     [Theory]
     [InlineData(2010, 6, 15, 2026, 6, 14, 15)]
     [InlineData(2010, 6, 15, 2026, 6, 15, 16)]

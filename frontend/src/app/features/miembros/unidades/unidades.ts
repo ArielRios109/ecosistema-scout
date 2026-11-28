@@ -12,7 +12,7 @@ import { Auth } from '../../../core/auth/auth';
 import { ROLES } from '../../../core/auth/permisos';
 import { ConfirmacionService } from '../../../shared/confirmacion/confirmacion';
 import { DatosTextoDialogo, TextoDialogo } from '../../../shared/texto-dialogo/texto-dialogo';
-import { etiquetaRama, Patrulla, Unidad } from '../miembros.models';
+import { capitalizar, etiquetaRama, Patrulla, Unidad } from '../miembros.models';
 import { UnidadesService } from '../miembros.service';
 import { UnidadDialogo } from './unidad-dialogo';
 
@@ -40,6 +40,7 @@ export class Unidades implements OnInit {
   protected readonly esAdmin = inject(Auth).tieneRol(ROLES.administrador);
   protected incluirInactivas = false;
   protected readonly etiquetaRama = etiquetaRama;
+  protected readonly capitalizar = capitalizar;
 
   ngOnInit(): void {
     this.cargar();
@@ -92,8 +93,8 @@ export class Unidades implements OnInit {
 
   protected nuevaPatrulla(unidad: Unidad): void {
     this.pedirNombre({
-      titulo: `Nueva patrulla en ${unidad.nombre}`,
-      etiqueta: 'Nombre de la patrulla',
+      titulo: `Nueva ${unidad.subgrupo.nombre} en ${unidad.nombre}`,
+      etiqueta: `Nombre de la ${unidad.subgrupo.nombre}`,
       maximo: 80,
       confirmar: 'Crear',
     })
@@ -101,10 +102,10 @@ export class Unidades implements OnInit {
       .subscribe(() => this.cargar());
   }
 
-  protected editarPatrulla(patrulla: Patrulla): void {
+  protected editarPatrulla(patrulla: Patrulla, unidad: Unidad): void {
     this.pedirNombre({
-      titulo: 'Editar patrulla',
-      etiqueta: 'Nombre de la patrulla',
+      titulo: `Renombrar ${unidad.subgrupo.nombre}`,
+      etiqueta: `Nombre de la ${unidad.subgrupo.nombre}`,
       valor: patrulla.nombre,
       maximo: 80,
     })

@@ -1,0 +1,182 @@
+<a mat-button routerLink="/inventario/bienes" class="mb-2">
+  <mat-icon>arrow_back</mat-icon>
+  Volver al listado
+</a>
+
+@if (bien(); as b) {
+  <header class="flex items-center justify-between gap-3 mb-3 encabezado">
+    <div>
+      <h2 class="titulo-grande m-0">{{ b.nombre }}</h2>
+      <p class="texto-secundario m-0 mt-1">
+        {{ b.codigo }} · {{ b.categoria }} ·
+        <strong>{{ b.disponible }}/{{ b.cantidad }}</strong> disponible{{
+          b.disponible === 1 ? '' : 's'
+        }}
+      </p>
+    </div>
+    @if (!b.dadoDeBaja) {
+      <div class="flex gap-2 acciones">
+        @if (permisos.prestar) {
+          <button mat-flat-button (click)="prestar()" [disabled]="b.disponible === 0">
+            <mat-icon>outbox</mat-icon>
+            Prestar
+          </button>
+        }
+        @if (permisos.gestionar) {
+          <button mat-stroked-button (click)="editar()">
+            <mat-icon>edit</mat-icon>
+            Editar
+          </button>
+          <button mat-stroked-button (click)="darDeBaja()">
+            <mat-icon>archive</mat-icon>
+            Dar de baja
+          </button>
+        }
+      </div>
+    }
+  </header>
+
+  @if (b.baja; as baja) {
+    <p class="franja-baja flex items-center gap-2 m-0 mb-3 p-3">
+      <mat-icon>archive</mat-icon>
+      Dado de baja el {{ fecha(baja.fecha) }} por {{ motivos[baja.motivo] | lowercase
+      }}{{ baja.detalle ? ': ' + baja.detalle : '.' }}
+      {{ baja.registradaPor ? '(registró ' + baja.registradaPor + ')' : '' }}
+    </p>
+  }
+
+  <div class="columnas">
+    <mat-card appearance="outlined" class="foto">
+      @if (urlFoto(); as url) {
+        <img [src]="url" [alt]="'Foto de ' + b.nombre" />
+      } @else {
+        <div class="sin-foto flex-col items-center justify-center gap-1 texto-secundario">
+          <mat-icon>photo_camera</mat-icon>
+          Sin foto
+        </div>
+      }
+      @if (permisos.gestionar && !b.dadoDeBaja) {
+        <mat-card-actions>
+          <button mat-button (click)="selectorFoto.click()">
+            <mat-icon>upload</mat-icon>
+            {{ b.tieneFoto ? 'Cambiar foto' : 'Subir foto' }}
+          </button>
+          @if (b.tieneFoto) {
+            <button mat-button (click)="eliminarFoto()">Quitar</button>
+          }
+          <input
+            #selectorFoto
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            hidden
+            (change)="subirFoto($event)"
+          />
+        </mat-card-actions>
+      }
+    </mat-card>
+
+    <dl class="datos m-0">
+      <div>
+        <dt>Estado</dt>
+        <dd>{{ estados[b.estado] }}</dd>
+      </div>
+      <div>
+        <dt>Ubicación</dt>
+        <dd>{{ b.ubicacion ?? 'Sin registrar' }}</dd>
+      </div>
+      <div>
+        <dt>Responsable</dt>
+        <dd>{{ b.responsable ?? 'Sin responsable' }}</dd>
+      </div>
+      <div>
+        <dt>Origen</dt>
+        <dd>{{ origenes[b.origen] }}</dd>
+      </div>
+      <div>
+        <dt>Marca y serie</dt>
+        <dd>{{ b.marca ?? '—' }}{{ b.numeroSerie ? ' · N° ' + b.numeroSerie : '' }}</dd>
+      </div>
+      <div>
+        <dt>Adquisición</dt>
+        <dd>{{ b.fechaAdquisicion ? fecha(b.fechaAdquisicion) : 'Sin registrar' }}</dd>
+      </div>
+      <div>
+        <dt>Precio de compra</dt>
+        <dd>
+          {{ pesos(b.precioCompra) }}
+        </dd>
+      </div>
+      <div>
+        <dt>Valor estimado</dt>
+        <dd>
+          {{ pesos(b.valorEstimado) }}
+        </dd>
+      </div>
+      @if (b.descripcion) {
+        <div class="completo">
+          <dt>Descripción</dt>
+          <dd>{{ b.descripcion }}</dd>
+        </div>
+      }
+    </dl>
+  </div>
+
+  <h3 class="subtitulo mt-3 mb-2">Préstamos</h3>
+  @if (b.prestamos.length === 0) {
+    <p class="texto-secundario">Nunca se ha prestado.</p>
+  } @else {
+    <div class="tabla-contenedor">
+      <table mat-table [dataSource]="b.prestamos" class="ancho-completo">
+        <ng-container matColumnDef="salida">
+          <th mat-header-cell *matHeaderCellDef>Salida</th>
+          <td mat-cell *matCellDef="let p">{{ fecha(p.fechaSalida) }}</td>
+        </ng-container>
+        <ng-container matColumnDef="destinatario">
+          <th mat-header-cell *matHeaderCellDef>Para</th>
+          <td mat-cell *matCellDef="let p">
+            {{ p.destinatario }}
+            @if (p.actividad) {
+              <small class="texto-secundario bloque">{{ p.actividad }}</small>
+            }
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="cantidad">
+          <th mat-header-cell *matHeaderCellDef>Cant.</th>
+          <td mat-cell *matCellDef="let p">{{ p.cantidad }}</td>
+        </ng-container>
+        <ng-container matColumnDef="devolucion">
+          <th mat-header-cell *matHeaderCellDef>Devolución</th>
+          <td mat-cell *matCellDef="let p">
+            {{
+              p.fechaDevolucion
+                ? fecha(p.fechaDevolucion)
+                : 'Hasta el ' + fecha(p.fechaDevolucionEsperada)
+            }}
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let p">
+            @if (p.fechaDevolucion) {
+              Devuelto · {{ devoluciones[p.estadoDevolucion] | lowercase }}
+            } @else if (p.vencido) {
+              <span class="vencido">Vencido</span>
+            } @else {
+              Prestado
+            }
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let p" class="acciones-celda">
+            @if (!p.fechaDevolucion && permisos.prestar) {
+              <button mat-stroked-button (click)="devolver(p)">Devolver</button>
+            }
+          </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+        <tr mat-row *matRowDef="let fila; columns: columnas"></tr>
+      </table>
+    </div>
+  }
+}

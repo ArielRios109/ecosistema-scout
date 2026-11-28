@@ -17,6 +17,7 @@ import { debounceTime, map, Subject } from 'rxjs';
 import { BeneficiarioResumen, EstadoBeneficiario, Unidad } from '../miembros.models';
 import { BeneficiariosService, UnidadesService } from '../miembros.service';
 import { AccionesBeneficiario } from './acciones-beneficiario';
+import { AvisosBeneficiario } from './avisos-beneficiario';
 
 /** Listado de beneficiarios con búsqueda, filtros por unidad y estado, y paginación (tarjetas en el móvil). */
 @Component({
@@ -29,6 +30,7 @@ import { AccionesBeneficiario } from './acciones-beneficiario';
     MatCardModule,
     MatButtonModule,
     MatIconModule,
+    AvisosBeneficiario,
     MatMenuModule,
     MatFormFieldModule,
     MatInputModule,
@@ -36,7 +38,7 @@ import { AccionesBeneficiario } from './acciones-beneficiario';
   ],
   providers: [AccionesBeneficiario],
   templateUrl: './beneficiarios.html',
-  styleUrls: ['../listado.scss', './beneficiarios.scss'],
+  styleUrls: ['../../../shared/estilos/listado.scss', './beneficiarios.scss'],
 })
 export class Beneficiarios implements OnInit {
   private readonly servicio = inject(BeneficiariosService);

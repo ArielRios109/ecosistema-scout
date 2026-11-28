@@ -38,3 +38,8 @@ mat-chip {
     align-items: stretch;
   }
 }
+
+.completa {
+  color: var(--mat-sys-error);
+  font-weight: 600;
+}

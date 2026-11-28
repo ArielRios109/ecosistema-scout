@@ -8,6 +8,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EcosistemaScout.Api.Modulos.Miembros.FichasMedicas;
 
+/// <summary>Una ficha se considera desactualizada si pasaron más de 3 meses desde su último cambio (PGS).</summary>
+public static class VigenciaFicha
+{
+    public const int Meses = 3;
+
+    /// <summary>"sin-ficha", "desactualizada" o "al-dia".</summary>
+    public static string Estado(DateTime? actualizada) =>
+        actualizada is null ? "sin-ficha" : actualizada < DateTime.UtcNow.AddMonths(-Meses) ? "desactualizada" : "al-dia";
+}
+
 /// <summary>Ficha médica descifrada. Si el beneficiario aún no tiene ficha, Existe es false y los campos vienen vacíos.</summary>
 public record FichaMedicaDto(
     bool Existe,
@@ -19,7 +29,10 @@ public record FichaMedicaDto(
     string? RestriccionesAlimentarias,
     string? NecesidadesEmocionales,
     DateTime? ActualizadaEl,
-    string? ActualizadaPor);
+    string? ActualizadaPor)
+{
+    public bool Desactualizada => VigenciaFicha.Estado(ActualizadaEl) == "desactualizada";
+}
 
 public record SolicitudFichaMedica(
     [MaxLength(40, ErrorMessage = "La previsión admite hasta 40 caracteres.")] string? Prevision,

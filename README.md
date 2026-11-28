@@ -16,7 +16,8 @@ En los grupos scout la información administrativa vive en planillas, papeles y 
 |---|---|
 | Base | Listo: inicio de sesión, usuarios y roles, contraseña temporal, bitácora |
 | Gestión de Miembros | Listo |
-| Inventario, Financiamiento y Portal de pagos | En construcción |
+| Inventario | Listo: bienes, préstamos, bajas, fotos y exportación a Excel |
+| Financiamiento y Portal de pagos | En construcción |
 
 - **Base**: Inicio de sesión, usuarios, roles acumulables con alcance por unidad, configuración del grupo y bitácora de auditoría.
 - **Gestión de Miembros**: Unidades y patrullas, beneficiarios, apoderados y sus vínculos, contactos de emergencia, ficha médica cifrada, voluntarios y cargos, historial de cada beneficiario.

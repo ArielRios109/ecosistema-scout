@@ -10,8 +10,10 @@ import { aFechaIso, desdeFechaIso, proveerFechas } from '../../../core/i18n/fech
 import { RutRegistrado, rutDisponible, validarRut } from '../../../shared/rut/rut';
 import {
   BeneficiarioDetalle,
+  capitalizar,
   etiquetaRama,
   SolicitudBeneficiario,
+  SUBGRUPO_GENERICO,
   Unidad,
 } from '../miembros.models';
 
@@ -153,7 +155,13 @@ export class CamposPersonales {
           (selectionChange)="grupo().get('patrullaId')?.setValue(null)"
         >
           @for (u of unidades(); track u.id) {
-            <mat-option [value]="u.id">{{ u.nombre }} · {{ etiquetaRama(u.rama) }}</mat-option>
+            <mat-option
+              [value]="u.id"
+              [disabled]="u.beneficiarios >= u.maximo && u.id !== unidadActual()"
+            >
+              {{ u.nombre }} · {{ etiquetaRama(u.rama) }}
+              {{ u.beneficiarios >= u.maximo ? '(completa)' : '' }}
+            </mat-option>
           }
         </mat-select>
         @if (grupo().get('unidadId')?.disabled) {
@@ -162,11 +170,19 @@ export class CamposPersonales {
         <mat-error>Selecciona la unidad.</mat-error>
       </mat-form-field>
       <mat-form-field appearance="outline">
-        <mat-label>Patrulla (opcional)</mat-label>
+        <mat-label>{{ capitalizar(subgrupo().nombre) }} (opcional)</mat-label>
         <mat-select formControlName="patrullaId">
-          <mat-option [value]="null">Sin patrulla</mat-option>
+          <mat-option [value]="null">Sin {{ subgrupo().nombre }}</mat-option>
           @for (p of patrullas(); track p.id) {
-            <mat-option [value]="p.id">{{ p.nombre }}</mat-option>
+            <mat-option
+              [value]="p.id"
+              [disabled]="completa(p.beneficiarios) && p.id !== patrullaActual()"
+            >
+              {{ p.nombre }}
+              @if (subgrupo().maximo) {
+                · {{ p.beneficiarios }}/{{ subgrupo().maximo }}
+              }
+            </mat-option>
           }
         </mat-select>
       </mat-form-field>
@@ -213,10 +229,12 @@ export class CamposPersonales {
 export class CamposUbicacion {
   readonly grupo = input.required<FormGroup>();
   readonly unidades = input.required<Unidad[]>();
-  /** Patrulla actual (se muestra aunque esté desactivada). */
+  /** Unidad y patrulla actuales al editar: se pueden mantener aunque estén completas o desactivadas. */
+  readonly unidadActual = input<number | null>(null);
   readonly patrullaActual = input<number | null>(null);
   protected readonly hoy = new Date();
   protected readonly etiquetaRama = etiquetaRama;
+  protected readonly capitalizar = capitalizar;
 
   private readonly unidadElegida = toSignal(
     toObservable(this.grupo).pipe(
@@ -227,9 +245,16 @@ export class CamposUbicacion {
     ),
   );
 
-  protected readonly patrullas = computed(() =>
-    (this.unidades().find((u) => u.id === this.unidadElegida())?.patrullas ?? []).filter(
-      (p) => p.activa || p.id === this.patrullaActual(),
-    ),
+  private readonly unidad = computed(() =>
+    this.unidades().find((u) => u.id === this.unidadElegida()),
   );
+  protected readonly subgrupo = computed(() => this.unidad()?.subgrupo ?? SUBGRUPO_GENERICO);
+  protected readonly patrullas = computed(() =>
+    (this.unidad()?.patrullas ?? []).filter((p) => p.activa || p.id === this.patrullaActual()),
+  );
+
+  protected completa(integrantes: number): boolean {
+    const maximo = this.subgrupo().maximo;
+    return maximo !== null && integrantes >= maximo;
+  }
 }

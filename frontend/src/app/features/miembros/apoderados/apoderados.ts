@@ -44,7 +44,7 @@ import {
     MatInputModule,
   ],
   templateUrl: './apoderados.html',
-  styleUrls: ['../listado.scss', './apoderados.scss'],
+  styleUrls: ['../../../shared/estilos/listado.scss', './apoderados.scss'],
 })
 export class Apoderados implements OnInit {
   private readonly servicio = inject(ApoderadosService);

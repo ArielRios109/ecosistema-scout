@@ -12,6 +12,8 @@ const UNIDADES: Unidad[] = [
     rama: 'scouts',
     activa: true,
     beneficiarios: 5,
+    maximo: 32,
+    subgrupo: { nombre: 'patrulla', plural: 'patrullas', maximo: 8 },
     patrullas: [{ id: 10, unidadId: 1, nombre: 'Cóndores', activa: true, beneficiarios: 3 }],
   },
 ];
@@ -43,8 +45,8 @@ describe('Unidades', () => {
 
     expect(pagina.querySelector('mat-card-title')?.textContent).toContain('Tropa Lautaro');
     expect(pagina.querySelector('mat-card-subtitle')?.textContent).toContain('Scouts (Tropa)');
-    expect(pagina.textContent).toContain('5 beneficiarios activos');
-    expect(pagina.querySelector('mat-chip')?.textContent).toContain('Cóndores · 3');
+    expect(pagina.textContent).toContain('5/32 beneficiarios activos');
+    expect(pagina.querySelector('mat-chip')?.textContent).toContain('Cóndores · 3/8');
   });
 
   it('solo el administrador puede crear unidades', async () => {

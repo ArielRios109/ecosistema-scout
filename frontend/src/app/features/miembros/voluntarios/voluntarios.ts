@@ -39,7 +39,7 @@ import { VoluntarioDialogo } from './voluntario-dialogo';
     MatSelectModule,
   ],
   templateUrl: './voluntarios.html',
-  styleUrl: '../listado.scss',
+  styleUrl: '../../../shared/estilos/listado.scss',
 })
 export class Voluntarios implements OnInit {
   private readonly servicio = inject(VoluntariosService);

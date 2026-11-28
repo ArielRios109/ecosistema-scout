@@ -12,7 +12,7 @@ import { ConCambiosSinGuardar } from '../../../shared/confirmacion/cambios-sin-g
 import { ConfirmacionService } from '../../../shared/confirmacion/confirmacion';
 import { errorRutAlEscribir } from '../../../shared/rut/rut';
 import { RutInput } from '../../../shared/rut/rut-input';
-import { BeneficiarioDetalle, Unidad } from '../miembros.models';
+import { BeneficiarioDetalle, SUBGRUPO_GENERICO, Unidad } from '../miembros.models';
 import { BeneficiariosService, UnidadesService } from '../miembros.service';
 import {
   aSolicitudBeneficiario,
@@ -79,6 +79,7 @@ import {
             <app-campos-ubicacion
               [grupo]="f.controls.ubicacion"
               [unidades]="unidades()"
+              [unidadActual]="beneficiario()?.unidadId ?? null"
               [patrullaActual]="beneficiario()?.patrullaId ?? null"
             />
           </mat-card-content>
@@ -137,6 +138,8 @@ export class EditarBeneficiario implements ConCambiosSinGuardar {
               activa: false,
               beneficiarios: 0,
               patrullas: [],
+              maximo: Number.MAX_SAFE_INTEGER,
+              subgrupo: SUBGRUPO_GENERICO,
             },
           ];
         }
