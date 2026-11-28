@@ -26,7 +26,7 @@ public class DatosDemoMiembros(AppDbContext db, CifradoFichaMedica cifrado, ILog
         new("Manada Seeonee", "lobatos", 7, ["Seisena Gris", "Seisena Café"]),
         new("Compañía Copihue", "guias", 11, ["Patrulla Gaviotas", "Patrulla Alerces"]),
         new(UnidadMarcador, "scouts", 11, ["Patrulla Cóndores", "Patrulla Pumas"]),
-        new("Avanzada Los Andes", "pioneros", 15, ["Equipo Volcán"]),
+        new("Avanzada Los Andes", "pioneros", 15, ["Comunidad Volcán"]),
         new("Clan Rucamanque", "caminantes", 17, []),
     ];
 

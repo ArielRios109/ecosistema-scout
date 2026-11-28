@@ -43,7 +43,7 @@ Capturas tomadas el 27-11-2026 con el sistema corriendo en Docker (`docker compo
 
 | Archivo | Qué muestra |
 |---|---|
-| `31-pgs-cupos-por-unidad-y-subgrupo.png` | Cupos por unidad (x/32) y subgrupo según la rama (seisenas x/6, patrullas x/8, equipos, comunidades) |
+| `31-pgs-cupos-por-unidad-y-subgrupo.png` | Cupos por unidad (x/32) y subgrupo según la rama (seisenas x/6, patrullas x/8, comunidades en la Avanzada y equipos en el Clan) |
 | `32-pgs-avisos-en-listado.png` | Avisos de egreso y de ficha médica desactualizada en el listado |
 | `33-pgs-ficha-medica-desactualizada.png` | Franja de ficha médica con más de 3 meses sin cambios |
 | `34-pgs-aviso-de-egreso.png` | Aviso de egreso de un beneficiario de 20 años |
