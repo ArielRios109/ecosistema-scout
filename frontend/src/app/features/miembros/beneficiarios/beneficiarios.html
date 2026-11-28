@@ -26,6 +26,16 @@
     Nuevo beneficiario
   </button>
 </div>
+@if (aviso) {
+  <mat-chip-set class="mb-2" aria-label="Filtro por aviso">
+    <mat-chip (removed)="quitarAviso()">
+      {{ etiquetasAviso[aviso] ?? aviso }}
+      <button matChipRemove aria-label="Quitar filtro por aviso">
+        <mat-icon>cancel</mat-icon>
+      </button>
+    </mat-chip>
+  </mat-chip-set>
+}
 
 <ng-template #menuAcciones let-b>
   <button

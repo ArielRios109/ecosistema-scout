@@ -10,7 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { debounceTime, map, Subject } from 'rxjs';
 import { formatearFecha } from '../../../core/i18n/fechas';
 import { AccionesInventario } from '../acciones-inventario';
@@ -152,6 +152,7 @@ import { PermisosInventario } from '../permisos-inventario';
 export class Prestamos implements OnInit {
   private readonly servicio = inject(InventarioService);
   private readonly acciones = inject(AccionesInventario);
+  private readonly ruta = inject(ActivatedRoute);
   protected readonly permisos = inject(PermisosInventario);
 
   protected readonly prestamos = signal<Prestamo[]>([]);
@@ -180,6 +181,10 @@ export class Prestamos implements OnInit {
   );
 
   ngOnInit(): void {
+    // Desde el inicio se llega con ?estado=vencidos.
+    const estado = this.ruta.snapshot.queryParamMap.get('estado');
+    if (estado === 'activos' || estado === 'vencidos' || estado === 'devueltos')
+      this.filtro.estado = estado;
     this.escritura$.pipe(debounceTime(350)).subscribe(() => this.alFiltrar());
     this.cargar();
   }
